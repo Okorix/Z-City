@@ -1185,9 +1185,9 @@ function SWEP:CoreStep()
             --self:SetNWBool("IsResting", false)
         end
 
-        if self.reload or self:KeyDown(IN_RELOAD) then
-            self:SetNWBool("IsResting", false)
-        end
+        -- if self.reload or self:KeyDown(IN_RELOAD) then
+        --     self:SetNWBool("IsResting", false)
+        -- end
     end
 
 	--[[if CLIENT and ((self.cooldown_transform or 0) < CurTime()) then
