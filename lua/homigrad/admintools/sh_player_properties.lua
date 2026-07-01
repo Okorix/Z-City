@@ -376,9 +376,7 @@ properties.Add( "weapon_menu", {
 		if not ply:ZCTools_GetAccess() then return false end 
 		if ( !IsValid( ent ) ) then return false end
 		if not ent:IsWeapon() then return false end
-		local class = ent:GetClass()
-		local entStored = weapons.Get(class)
-		if entStored.Base ~= "homigrad_base" then return false end
+		if not ent.ishgwep then return false end
 		return true
 	end,
 
