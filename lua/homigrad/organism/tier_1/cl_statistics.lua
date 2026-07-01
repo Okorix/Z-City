@@ -715,6 +715,10 @@ hook.Add("HUDPaint", "homigrad-wound-debug", function()
 				DrawAccesories(mdl, mdl, vv, hg.Accessories[vv], false, true)
 			end
 		end
+		if mdl.armors and not table.IsEmpty(mdl.armors) then
+			mdl.shouldTransmit = true
+			DrawArmors(LocalPlayer(), mdl.armors, mdl)
+		end
 
 		render.SetStencilCompareFunction(STENCIL_EQUAL)
 		render.SetStencilPassOperation(STENCIL_INCR)
@@ -789,9 +793,10 @@ hook.Add("HUDPaint", "homigrad-wound-debug", function()
 
 	draw.SimpleText("R to skip.", "HomigradFontBig", ScrW() / 3 * 2, ScrH() / 7, color_white)
 	draw.SimpleText("Hit " .. tostring(curIdx) .. " of " .. tostring(#hg.hits) .. " by " .. tostring(cur.inf) .. " from " .. tostring(cur.attacker), "HomigradFontBig", ScrW() / 3 * 2, ScrH() / 10, color_white)
-
+	
 	local countedorgans = {}
 	local organs2 = {}
+
 	for i, text in pairs(cur.hitorgans) do
 		if countedorgans[text] then continue end
 		countedorgans[text] = true
@@ -799,14 +804,28 @@ hook.Add("HUDPaint", "homigrad-wound-debug", function()
 		if cur.ricochets[i] then
 			table.insert(organs2, cur.ricochets[i] .. tostring(hg.organism.translationTbl[cur.hitorgans[i]] or cur.hitorgans[i]))
 		else
-			table.insert(organs2, "Penetrated " .. hg.organism.translationTbl[text])
+			local translation = hg.organism.translationTbl[text]
+			table.insert(organs2, "Penetrated " .. (translation ~= nil and translation or text))
 		end
 	end
 
+	surface.SetFont("HomigradFont")
+
+	local maxWidth = 0
+	for _, text in ipairs(organs2) do
+		local w = surface.GetTextSize(text)
+		if w > maxWidth then
+			maxWidth = w
+		end
+	end
+	
+	maxWidth = maxWidth + ScreenScale(10)
+
 	for i, text in ipairs(organs2) do
 		local y = ScreenScale(200) + ScreenScale((i - 1) * 16)
-		draw.RoundedBox(0, ScreenScale(75),y , weight * 1.5, ScreenScale(16), littleblack)
-		draw.RoundedBox(1, ScreenScale(75), y, weight * 1.5 - 5, ScreenScale(16), color_black)
+
+		draw.RoundedBox(0, ScreenScale(75), y, maxWidth, ScreenScale(16), littleblack)
+		draw.RoundedBox(1, ScreenScale(75), y, maxWidth - 5, ScreenScale(16), color_black)
 		draw.SimpleText(text, "HomigradFont", ScreenScale(80), y, white)
 	end
 end)

@@ -173,7 +173,7 @@ if CLIENT then
 				end)
 			end
 			
-			local ent = hg.GetCurrentCharacter(ply)
+			-- local ent = hg.GetCurrentCharacter(ply)
 	
 			if not IsValid(ent) then return end
 	
