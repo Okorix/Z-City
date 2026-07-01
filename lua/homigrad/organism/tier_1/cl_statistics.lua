@@ -799,15 +799,15 @@ hook.Add("HUDPaint", "homigrad-wound-debug", function()
 		if cur.ricochets[i] then
 			table.insert(organs2, cur.ricochets[i] .. tostring(hg.organism.translationTbl[cur.hitorgans[i]] or cur.hitorgans[i]))
 		else
-			table.insert(organs2, "Penetrated " .. text)
+			table.insert(organs2, "Penetrated " .. hg.organism.translationTbl[text])
 		end
 	end
 
 	for i, text in ipairs(organs2) do
 		local y = ScreenScale(200) + ScreenScale((i - 1) * 16)
-		draw.RoundedBox(0, ScreenScale(75), y, weight * 1.5, ScreenScale(16), littleblack)
+		draw.RoundedBox(0, ScreenScale(75),y , weight * 1.5, ScreenScale(16), littleblack)
 		draw.RoundedBox(1, ScreenScale(75), y, weight * 1.5 - 5, ScreenScale(16), color_black)
-		draw.SimpleText((hg.organism.translationTbl[text] or text), "HomigradFont", ScreenScale(80), y, white)
+		draw.SimpleText(text, "HomigradFont", ScreenScale(80), y, white)
 	end
 end)
 
