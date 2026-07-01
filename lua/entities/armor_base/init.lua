@@ -12,7 +12,7 @@ function ENT:Initialize()
 	self:SetCollisionGroup(COLLISION_GROUP_WEAPON)
 	self:SetUseType(SIMPLE_USE)
 	self:DrawShadow(false)
-	self:SetPos(self:GetPos() + vec30)
+	self:SetPos(self:GetPos() + (self.dontAddPos and Vector(0,0,0) or vec30))
 
 	if self.material and !istable(self.material) then
 		self.mat = self.material
