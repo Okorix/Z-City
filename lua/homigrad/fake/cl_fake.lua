@@ -251,9 +251,6 @@ CalcView = function(ply, origin, angles, fov, znear, zfar)
 		end
 	end
 
-
-	if not lply:Alive() and hg.DeathCam and hg.DeathCamAvailable(ply) then return hg.DeathCam(ply,origin,angles,fov,znear,zfar) end
-
 	if not IsValid(ply) then return end
 	if not IsValid(follow) then return end
 	if not follow:LookupBone("ValveBiped.Bip01_Head1") then return end
