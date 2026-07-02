@@ -1371,10 +1371,15 @@ hook.Add( "OnEntityCreated", "ReplaceEnt", function( ent )
             OverrideWeaponSpawn = false
         end
 
-        timer.Simple(0.1, function()
-            if not IsValid(ent) then return end
-            doReplace()
-        end)
+		local conTable = constraint.GetTable(ent)
+		if conTable and #conTable > 0 then return end
+		
+		timer.Simple(0.1, function()
+			if not IsValid(ent) then return end
+			local conTable2 = constraint.GetTable(ent)
+			if conTable2 and #conTable2 > 0 then return end
+			doReplace()
+		end)
     end)
 end )
 
