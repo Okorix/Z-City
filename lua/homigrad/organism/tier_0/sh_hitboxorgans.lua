@@ -159,7 +159,7 @@ hook.Add("PostDrawTranslucentRenderables", "homigrad-organism", function()
 end)
 
 hook.Add("HUDPaint", "homigrad-organism-textdebug", function()
-	if lookedOrgan and lookedPos and LocalPlayer():IsAdmin() and hg_show_hitbox:GetBool() then
+	if lookedOrgan and lookedPos and LocalPlayer():IsAdmin() and hg_show_hitbox:GetBool() and hg_show_hitbox_dir:GetFloat() > 0 then
 		local scr = lookedPos:ToScreen()
 
 		draw.SimpleTextOutlined(
