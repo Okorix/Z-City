@@ -2065,8 +2065,7 @@ end]]
 
 if CLIENT then
     local hg_setmeleestats = CreateClientConVar("hg_setmeleestats", "0", false, false, "", 0, 1)
-    local hg_show_meleeattackpos = CreateClientConVar("hg_show_meleeattackpos", "0", false, false, "", 0, 1)
-
+    
     local _meleeFrame
 
     local function PrintAndCopy(wep)
@@ -2161,16 +2160,4 @@ if CLIENT then
             _meleeFrame:Remove()
         end
     end, "hg_setmeleestats_cb")
-
-    hook.Add("Think", "hg_show_meleeattackpos", function()
-        if not hg_show_meleeattackpos:GetBool() then return end
-        local ply = LocalPlayer()
-        if not ply:IsAdmin() then return end
-        local wep = ply:GetActiveWeapon()
-        if not wep.GetAttackLength or not wep.Attack then return end
-        local ent = hg.GetCurrentCharacter(ply)
-        local vellen = ent:GetVelocity():Length()
-        local trace = wep:Attack(ply, ent, vellen, false, 0.5)
-        debugoverlay.Line(trace.StartPos, trace.HitPos, 0.025, Color(255, 0, 0), true)
-    end)
 end
