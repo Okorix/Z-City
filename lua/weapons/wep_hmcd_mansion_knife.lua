@@ -93,5 +93,5 @@ SWEP.WaitTime2 = 0.6
 SWEP.AttackRads = 65
 SWEP.AttackRads2 = 65
 
-SWEP.SwingAng = -85
+SWEP.SwingAng = 0
 SWEP.SwingAng2 = 0

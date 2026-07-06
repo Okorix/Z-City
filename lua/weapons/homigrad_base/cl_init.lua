@@ -1,4 +1,3 @@
---
 include("shared.lua")
 include("sh_anim.lua")
 include("sh_bullet.lua")
@@ -15,6 +14,7 @@ include("cl_camera.lua")
 include("cl_optics.lua")
 include("cl_shells.lua")
 include("sh_options.lua")
+include("cl_setgunstats.lua")
 
 matproxy.Add({
     name = "UC_ShellColor",

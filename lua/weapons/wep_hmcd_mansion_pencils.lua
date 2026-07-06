@@ -77,8 +77,8 @@ SWEP.AnimTime2 = 0.75
 SWEP.Attack2Time = 0.15
 SWEP.WaitTime2 = 0.6
 
-SWEP.AttackRads = 65
-SWEP.AttackRads2 = 65
+SWEP.AttackRads = 0
+SWEP.AttackRads2 = 0
 
 SWEP.SwingAng = -85
 SWEP.SwingAng2 = 0

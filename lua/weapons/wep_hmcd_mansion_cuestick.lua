@@ -81,7 +81,7 @@ SWEP.WaitTime2 = 0.55
 SWEP.AttackRads = 45
 SWEP.AttackRads2 = 20
 
-SWEP.SwingAng = -90
+SWEP.SwingAng = 0
 SWEP.SwingAng2 = 0
 
 function SWEP:CanBlock()
@@ -102,19 +102,21 @@ function SWEP:ThinkAdd()
     local owner = self:GetOwner()
     if not IsValid(owner) then return end
 
-    local aiming = hg.KeyDown(owner, IN_ATTACK2) and not hg.KeyDown(owner, IN_SPEED) and owner:OnGround() and not self:GetInAttack()
+    local aiming = hg.KeyDown(owner, IN_ATTACK2) and not hg.KeyDown(owner, IN_SPEED) and owner:OnGround()
 
     if aiming then
         local power = self.Power
         self.AnimList["attack"] = "aim_stab"
         self.AttackTime = 0.05
         self.WaitTime1 = 0.95
+        self.AttackRads = 0
     else
         self.AnimList["attack"] = "stab"
         self.AttackLen1 = 90
         self.DamagePrimary = 15
         self.AttackTime = 0.35
         self.WaitTime1 = 0.65
+        self.AttackRads = 0
     end
 
     -- if CLIENT then

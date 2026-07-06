@@ -1,4 +1,3 @@
-
 local vecZero = Vector(0, 0, 0)
 local angZero = Angle(0, 0, 0)
 local shadowparams = {}

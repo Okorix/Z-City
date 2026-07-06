@@ -16,6 +16,7 @@ AddCSLuaFile("sh_weaponsinv.lua")
 AddCSLuaFile("sh_ammo.lua")
 AddCSLuaFile("cl_shells.lua")
 AddCSLuaFile("sh_options.lua")
+AddCSLuaFile("cl_setgunstats.lua")
 
 include("sh_fake.lua")
 include("sh_anim.lua")

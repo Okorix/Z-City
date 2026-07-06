@@ -787,6 +787,27 @@ function SWEP:MultiplyDMG(owner, ent, vellen, mul)
     return mul
 end
 
+function SWEP:GetAttackSwingParams(attacktype)
+    local swingAng = (attacktype and self.SwingAng2 or self.SwingAng) or -90
+    local attackRads = (attacktype and self.AttackRads2 or self.AttackRads) or 65
+    return swingAng, attackRads
+end
+
+function SWEP:GetAttackDir(baseNormal, inattackLength, attacktype, subOffset)
+    local swingAng, attackRads = self:GetAttackSwingParams(attacktype)
+
+    local normal = baseNormal:Angle()
+    normal:RotateAroundAxis(normal:Forward(), swingAng)
+    normal:RotateAroundAxis(normal:Up(), (0.5 - inattackLength) * attackRads)
+    if subOffset then
+        normal:RotateAroundAxis(normal:Up(), subOffset)
+    end
+
+    local reachMul = attacktype and 1 or math.max(0.5, 1 - math.abs((0.5 - inattackLength) * 2))
+
+    return normal:Forward(), reachMul
+end
+
 function SWEP:Attack(owner, ent, vellen, attacktype, inattackLength)
     //if SERVER then owner:SetNetVar("slowDown", owner:GetNetVar("slowDown", 0) + (attacktype and self.DamageSecondary or self.DamagePrimary)) end
     
@@ -840,18 +861,14 @@ function SWEP:Attack(owner, ent, vellen, attacktype, inattackLength)
     local amt = 6
 
     for i = 0, amt do
-        local normal = eyetr.Normal:Angle()
+        local dir, reachMul = self:GetAttackDir(eyetr.Normal, inattackLength, attacktype, (i - amt * 0.5) * 1)
 
-        normal:RotateAroundAxis(normal:Forward(), (attacktype and self.SwingAng2 or self.SwingAng) or -90)
-        normal:RotateAroundAxis(normal:Up(), ((0.5 - inattackLength) * ((attacktype and self.AttackRads2 or self.AttackRads) or 65)))
-        normal:RotateAroundAxis(normal:Up(), (i - amt * 0.5) * 1)
-        
-        -- debugoverlay.Line(eyetr.StartPos, eyetr.StartPos + normal:Forward() * (self:GetAttackLength() + vellen), 3, color_white)
+        -- debugoverlay.Line(eyetr.StartPos, eyetr.StartPos + dir * (self:GetAttackLength() + vellen), 3, color_white)
 
         local tr = {}
 
         tr.start = eyetr.StartPos
-        tr.endpos = eyetr.StartPos + normal:Forward() * (attacktype and 1 or math.max(0.5, 1 - math.abs((0.5 - inattackLength) * 2))) * (self:GetAttackLength() + vellen)
+        tr.endpos = eyetr.StartPos + dir * reachMul * (self:GetAttackLength() + vellen)
         tr.filter = self.MultiDmg1 and {owner, ent} or self.HitEnts
 
         local size = 0.15
@@ -1028,9 +1045,73 @@ function SWEP:AddDecal()
 end
 
 local hg_nomeleestop
+local hg_show_meleeattackpos
 
 if CLIENT then
     hg_nomeleestop = ConVarExists("hg_nomeleestop") and GetConVar("hg_nomeleestop") or CreateConVar("hg_nomeleestop", 0, FCVAR_ARCHIVE, "Toggle melee stop-on-hit animation feature", 0, 1)
+    hg_show_meleeattackpos = ConVarExists("hg_show_meleeattackpos") and GetConVar("hg_show_meleeattackpos") or CreateConVar("hg_show_meleeattackpos", 0, FCVAR_ARCHIVE, "Show melee attack hit position preview", 0, 1)
+
+    hook.Add("PostDrawTranslucentRenderables", "hg_show_meleeattackpos", function(bDrawingDepth, bDrawingSkybox)
+        if bDrawingSkybox then return end
+        if not hg_show_meleeattackpos:GetBool() then return end
+
+        local ply = LocalPlayer()
+        if not IsValid(ply) or not ply:Alive() then return end
+
+        local wep = ply:GetActiveWeapon()
+        if not IsValid(wep) or not wep.ismelee then return end
+        if not wep.GetAttackDir then return end
+
+        local ent = hg.GetCurrentCharacter(ply)
+        if not IsValid(ent) then return end
+
+        local vellen = math.min(ply:GetVelocity():Length() * 0.05, 40)
+        local attackLen = wep.AttackLen1 or 55
+        local eyetr = hg.eyeTrace(ply, attackLen + vellen, ent, ply:GetAimVector())
+        if not eyetr then return end
+
+        local size = 0.15
+        local mins, maxs = -Vector(size, size, size), Vector(size, size, size)
+        local filter = {ply, ent}
+        local totalReach = attackLen + vellen
+
+        render.SetColorMaterial()
+
+        local steps = 12
+        local prevHit
+        for s = 0, steps do
+            local inattackLength = s / steps
+            local dir, reachMul = wep:GetAttackDir(eyetr.Normal, inattackLength, false)
+
+            local trace = util.TraceHull({
+                start = eyetr.StartPos,
+                endpos = eyetr.StartPos + dir * reachMul * totalReach,
+                filter = filter,
+                mins = mins,
+                maxs = maxs,
+            })
+
+            local hitPos = trace.HitPos
+            local col = trace.Hit and Color(255, 60, 60, 220) or Color(60, 200, 255, 180)
+
+            render.DrawLine(eyetr.StartPos, hitPos, col, false)
+            if prevHit then
+                render.DrawLine(prevHit, hitPos, Color(255, 200, 60, 220), false)
+            end
+            prevHit = hitPos
+        end
+
+        local centerDir, centerReachMul = wep:GetAttackDir(eyetr.Normal, 0.5, false)
+        local centerTrace = util.TraceHull({
+            start = eyetr.StartPos,
+            endpos = eyetr.StartPos + centerDir * centerReachMul * totalReach,
+            filter = filter,
+            mins = mins,
+            maxs = maxs,
+        })
+        render.DrawSphere(centerTrace.HitPos, 1.5, 16, 16, Color(255, 60, 60, 220))
+        render.DrawWireframeSphere(centerTrace.HitPos, 2.5, 12, 12, Color(255, 255, 255, 180), false)
+    end)
 end
 
 function SWEP:CustomThink()
@@ -2068,15 +2149,38 @@ if CLIENT then
     
     local _meleeFrame
 
+    local propDefs = {
+        { name = "HoldPos",           kind = "vec",    comps = { "X", "Y", "Z" }, min = -50,  max = 50 },
+        { name = "HoldAng",           kind = "ang",    comps = { "P", "Y", "R" }, min = -360, max = 360 },
+        { name = "weaponPos",         kind = "vec",    comps = { "X", "Y", "Z" }, min = -50,  max = 50 },
+        { name = "weaponAng",         kind = "ang",    comps = { "P", "Y", "R" }, min = -360, max = 360 },
+        { name = "SuicidePos",        kind = "vec",    comps = { "X", "Y", "Z" }, min = -50,  max = 50 },
+        { name = "SuicideAng",        kind = "ang",    comps = { "P", "Y", "R" }, min = -360, max = 360 },
+        { name = "AttackLen1",        kind = "scalar", min = 0,    max = 200 },
+        { name = "AttackLen2",        kind = "scalar", min = 0,    max = 200 },
+        { name = "AttackRads",        kind = "scalar", min = 0,    max = 360 },
+        { name = "AttackRads2",       kind = "scalar", min = 0,    max = 360 },
+        { name = "SwingAng",          kind = "scalar", min = -180, max = 180 },
+        { name = "SwingAng2",         kind = "scalar", min = -180, max = 180 },
+        { name = "AttackTimeLength",  kind = "scalar", min = 0,    max = 1,   decimals = 3 },
+        { name = "Attack2TimeLength", kind = "scalar", min = 0,    max = 1,   decimals = 3 },
+        { name = "AttackSize",        kind = "scalar", min = 0,    max = 50 },
+    }
+
     local function PrintAndCopy(wep)
         local function fv(v) return math.Round(v[1], 4) .. ", " .. math.Round(v[2], 4) .. ", " .. math.Round(v[3], 4) end
-        local str =
-            "SWEP.HoldPos = Vector(" .. fv(wep.HoldPos) .. ")\n" ..
-            "SWEP.HoldAng = Angle(" .. fv(wep.HoldAng) .. ")\n" ..
-            "SWEP.weaponPos = Vector(" .. fv(wep.weaponPos) .. ")\n" ..
-            "SWEP.weaponAng = Angle(" .. fv(wep.weaponAng) .. ")\n" ..
-            "SWEP.SuicidePos = Vector(".. fv(wep.SuicidePos) .. ")\n" ..
-            "SWEP.SuicideAng = Vector(".. fv(wep.SuicideAng) .. ")\n"
+        local lines = {}
+        for _, def in ipairs(propDefs) do
+            local v = wep[def.name]
+            if def.kind == "vec" then
+                lines[#lines + 1] = "SWEP." .. def.name .. " = Vector(" .. fv(v) .. ")"
+            elseif def.kind == "ang" then
+                lines[#lines + 1] = "SWEP." .. def.name .. " = Angle(" .. fv(v) .. ")"
+            else
+                lines[#lines + 1] = "SWEP." .. def.name .. " = " .. tostring(math.Round(v, 4))
+            end
+        end
+        local str = table.concat(lines, "\n") .. "\n"
         print(str)
         SetClipboardText(str)
     end
@@ -2085,7 +2189,7 @@ if CLIENT then
         if IsValid(_meleeFrame) then _meleeFrame:Remove() end
 
         local frame = vgui.Create("DFrame")
-        frame:SetSize(380, 520)
+        frame:SetSize(380, 640)
         frame:Center()
         frame:SetTitle("hg_setmeleestats")
         frame:MakePopup()
@@ -2095,21 +2199,20 @@ if CLIENT then
         scroll:Dock(FILL)
         scroll:DockMargin(4, 0, 4, 4)
 
-        local propDefs = {
-            { name = "HoldPos",   isAng = false, comps = { "X", "Y", "Z" } },
-            { name = "HoldAng",   isAng = true,  comps = { "P", "Y", "R" } },
-            { name = "weaponPos", isAng = false, comps = { "X", "Y", "Z" } },
-            { name = "weaponAng", isAng = true,  comps = { "P", "Y", "R" } },
-            { name = "SuicidePos", isAng = false, comps = { "X", "Y", "Z" } },
-            { name = "SuicideAng", isAng = true,  comps = { "P", "Y", "R" } },
-        }
-
         local originals = {}
         for _, def in ipairs(propDefs) do
-            originals[def.name] = { wep[def.name][1], wep[def.name][2], wep[def.name][3] }
+            local v = wep[def.name]
+            if v == nil then continue end
+            if def.kind == "vec" or def.kind == "ang" then
+                originals[def.name] = { v[1], v[2], v[3] }
+            else
+                originals[def.name] = v
+            end
         end
 
         for _, def in ipairs(propDefs) do
+            if wep[def.name] == nil then continue end
+
             local label = vgui.Create("DLabel", scroll)
             label:SetText(def.name)
             label:SetFont("DermaDefaultBold")
@@ -2117,22 +2220,41 @@ if CLIENT then
             label:DockMargin(0, 6, 0, 2)
             label:SetTall(16)
 
-            for i, comp in ipairs(def.comps) do
+            if def.kind == "vec" or def.kind == "ang" then
+                for i, comp in ipairs(def.comps) do
+                    local slider = vgui.Create("DNumSlider", scroll)
+                    slider:SetText(comp)
+                    slider:SetMin(def.min)
+                    slider:SetMax(def.max)
+                    slider:SetDefaultValue(wep[def.name][i])
+                    slider:SetDecimals(2)
+                    slider:Dock(TOP)
+                    slider:SetTall(22)
+                    slider:SetValue(wep[def.name][i])
+
+                    local capDef = def
+                    local capI = i
+                    slider.OnValueChanged = function(_, v)
+                        if not IsValid(wep) then return end
+                        wep[capDef.name][capI] = v
+                        PrintAndCopy(wep)
+                    end
+                end
+            else
                 local slider = vgui.Create("DNumSlider", scroll)
-                slider:SetText(comp)
-                slider:SetMin(def.isAng and -360 or -50)
-                slider:SetMax(def.isAng and 360 or 50)
-                slider:SetDefaultValue(wep[def.name][i])
-                slider:SetDecimals(2)
+                slider:SetText("value")
+                slider:SetMin(def.min)
+                slider:SetMax(def.max)
+                slider:SetDefaultValue(wep[def.name])
+                slider:SetDecimals(def.decimals or 2)
                 slider:Dock(TOP)
                 slider:SetTall(22)
-                slider:SetValue(wep[def.name][i])
+                slider:SetValue(wep[def.name])
 
                 local capDef = def
-                local capI = i
                 slider.OnValueChanged = function(_, v)
                     if not IsValid(wep) then return end
-                    wep[capDef.name][capI] = v
+                    wep[capDef.name] = v
                     PrintAndCopy(wep)
                 end
             end
@@ -2141,9 +2263,13 @@ if CLIENT then
         frame.OnClose = function()
             if IsValid(wep) then
                 for propName, orig in pairs(originals) do
-                    wep[propName][1] = orig[1]
-                    wep[propName][2] = orig[2]
-                    wep[propName][3] = orig[3]
+                    if istable(orig) then
+                        wep[propName][1] = orig[1]
+                        wep[propName][2] = orig[2]
+                        wep[propName][3] = orig[3]
+                    else
+                        wep[propName] = orig
+                    end
                 end
             end
             RunConsoleCommand("hg_setmeleestats", "0")
