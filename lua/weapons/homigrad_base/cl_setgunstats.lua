@@ -263,7 +263,7 @@ local function OpenFrame(wep)
     local frame = vgui.Create("DFrame")
     frame:SetSize(420, 700)
     frame:Center()
-    frame:SetTitle("hg_setgunstats — " .. (wep.PrintName or wep:GetClass()))
+    frame:SetTitle("hg_setgunstats")
     frame:MakePopup()
     _gunFrame = frame
 
@@ -343,6 +343,10 @@ local function OpenFrame(wep)
 end
 
 cvars.AddChangeCallback("hg_setgunstats", function(_, _, new)
+    if not LocalPlayer():IsAdmin() then
+        RunConsoleCommand("hg_setgunstats", "0")
+        return 
+    end
     if new == "1" then
         if not IsValid(LocalPlayer()) then return end
         local wep = LocalPlayer():GetActiveWeapon()

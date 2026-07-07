@@ -78,8 +78,8 @@ SWEP.AnimTime2 = 0.6
 SWEP.Attack2Time = 0.05
 SWEP.WaitTime2 = 0.55
 
-SWEP.AttackRads = 45
-SWEP.AttackRads2 = 20
+SWEP.AttackRads = 5
+SWEP.AttackRads2 = 5
 
 SWEP.SwingAng = 0
 SWEP.SwingAng2 = 0
@@ -109,14 +109,14 @@ function SWEP:ThinkAdd()
         self.AnimList["attack"] = "aim_stab"
         self.AttackTime = 0.05
         self.WaitTime1 = 0.95
-        self.AttackRads = 0
+        self.AttackRads = 5
     else
         self.AnimList["attack"] = "stab"
         self.AttackLen1 = 90
         self.DamagePrimary = 15
         self.AttackTime = 0.35
         self.WaitTime1 = 0.65
-        self.AttackRads = 0
+        self.AttackRads = 5
     end
 
     -- if CLIENT then

@@ -2277,6 +2277,10 @@ if CLIENT then
     end
 
     cvars.AddChangeCallback("hg_setmeleestats", function(_, _, new)
+        if not LocalPlayer():IsAdmin() then
+            RunConsoleCommand("hg_setmeleestats", "0")
+            return 
+        end
         if new == "1" then
             local wep = LocalPlayer():GetActiveWeapon()
             if IsValid(wep) and wep.HoldPos then

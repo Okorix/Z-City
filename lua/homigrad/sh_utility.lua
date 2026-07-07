@@ -1835,3 +1835,58 @@ end
 --\\
 	hg_suppression_viewpunch = CreateConVar("hg_suppression_viewpunch", "1", {FCVAR_REPLICATED,FCVAR_ARCHIVE,FCVAR_NOTIFY}, "Enable viewpunching when you on suppressed", 0, 1)
 --//
+
+if CLIENT then
+	local hg_show_usetrace = GetConVar("hg_show_usetrace") or CreateClientConVar("hg_show_usetrace", "0", true, false)
+
+	hook.Add("PostDrawTranslucentRenderables", "FindUseEntity_Debug", function()
+        local ply = LocalPlayer()
+
+        if not IsValid(ply) then return end
+        if not ply:IsAdmin() then return end
+        if not hg_show_usetrace:GetBool() then return end
+
+        local eyetr = hg.eyeTrace(ply, 100, nil, nil, nil, checkUse)
+        if not eyetr then return end
+
+        local ent = eyetr.Entity
+
+        if not IsValid(ent) then
+            local tr = util.TraceHull({
+                start = eyetr.HitPos,
+                endpos = eyetr.HitPos,
+                filter = checkUse,
+                mins = -hullVec,
+                maxs = hullVec,
+                mask = MASK_SOLID + CONTENTS_DEBRIS + CONTENTS_PLAYERCLIP,
+                ignoreworld = false
+            })
+
+            ent = tr.Entity
+        end
+
+        render.DrawLine(ply:EyePos(), eyetr.HitPos, Color(0, 255, 0), true)
+
+        render.DrawWireframeBox(
+            eyetr.HitPos,
+            angle_zero,
+            Vector(-1, -1, -1),
+            Vector(1, 1, 1),
+            Color(255, 255, 0),
+            true
+        )
+
+        if IsValid(ent) then
+            local mins, maxs = ent:GetRenderBounds()
+
+            render.DrawWireframeBox(
+                ent:GetPos(),
+                ent:GetAngles(),
+                mins,
+                maxs,
+                Color(255, 0, 0),
+                true
+            )
+        end
+    end)
+end
