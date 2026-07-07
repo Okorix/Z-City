@@ -1245,16 +1245,16 @@ hook.Add( "OnEntityCreated", "ReplaceEnt", function( ent )
             end
 
             local entclass = ent:GetClass()
-            local replacmentEnt = (CurrentRound and CurrentRound().name == "coop" and TrackedEntsHalfLife[ entclass ] or TrackedEnts[ entclass ]) or TrackedModels[string.lower(ent:GetModel())]
+            local replacementEnt = (CurrentRound and CurrentRound().name == "coop" and TrackedEntsHalfLife[ entclass ] or TrackedEnts[ entclass ]) or TrackedModels[string.lower(ent:GetModel())]
 
-            if istable(replacmentEnt) then replacmentEnt = table.Random(replacmentEnt) end
+            if istable(replacementEnt) then replacementEnt = table.Random(replacementEnt) end
 
-            if replacmentEnt == "*ammo*" then
-                replacmentEnt = "ent_ammo_" .. table.Random(hg.ammotypeshuy).name
+            if replacementEnt == "*ammo*" then
+                replacementEnt = "ent_ammo_" .. table.Random(hg.ammotypeshuy).name
             end
 
-            if replacmentEnt == entclass then return end
-            if not replacmentEnt or replacmentEnt == "" then return end
+            if replacementEnt == entclass then return end
+            if not replacementEnt or replacementEnt == "" then return end
             if not IsValid(ent) then return end
 
             OverrideWeaponSpawn = true
@@ -1288,28 +1288,28 @@ hook.Add( "OnEntityCreated", "ReplaceEnt", function( ent )
             SafeRemoveEntity(ent)
 
             if owner and owner:IsNPC() and ent:GetClass() ~= "npc_grenade_frag" then
-                local replacmentEntNpc = TrackedEntsNpc[ entclass ][math.random( #TrackedEntsNpc[ entclass ] )]
+                local replacementEntNpc = TrackedEntsNpc[ entclass ][math.random( #TrackedEntsNpc[ entclass ] )]
                 local cap = owner:CapabilitiesGet()
                 if bit.band(cap, CAP_USE_WEAPONS) != CAP_USE_WEAPONS then OverrideWeaponSpawn = false return end
-                owner:Give(replacmentEntNpc)
+                owner:Give(replacementEntNpc)
                 OverrideWeaponSpawn = false
                 return
             end
 
-            local Replacment = ents.Create(replacmentEnt)
+            local Replacement = ents.Create(replacementEnt)
 
-            if not IsValid(Replacment) then
+            if not IsValid(Replacement) then
                 OverrideWeaponSpawn = false
                 return
             end
 
-			Replacment.dontAddPos = true
-            Replacment:SetPos(entPos)
-            Replacment:SetAngles(entAngles)
-            Replacment.IsSpawned = true
-            Replacment.init = true
-            Replacment:Spawn()
-			local phys = Replacment:GetPhysicsObject()
+			Replacement.dontAddPos = true
+            Replacement:SetPos(entPos)
+            Replacement:SetAngles(entAngles)
+            Replacement.IsSpawned = true
+            Replacement.init = true
+            Replacement:Spawn()
+			local phys = Replacement:GetPhysicsObject()
 			phys:EnableMotion(false)
 
 			for oldPhys, data in pairs(physCons) do
@@ -1319,13 +1319,13 @@ hook.Add( "OnEntityCreated", "ReplaceEnt", function( ent )
 				local ent2
 
 				if data.attach1 == ent:GetName() then
-					ent1 = Replacment
+					ent1 = Replacement
 				else
 					ent1 = ents.FindByName(data.attach1)[1]
 				end
 
 				if data.attach2 == ent:GetName() then
-					ent2 = Replacment
+					ent2 = Replacement
 				else
 					ent2 = ents.FindByName(data.attach2)[1]
 				end
@@ -1353,7 +1353,7 @@ hook.Add( "OnEntityCreated", "ReplaceEnt", function( ent )
 			end
 
             if owner then
-                Replacment.owner = owner
+                Replacement.owner = owner
             end
 
             if IsValid(phys) then
@@ -1365,7 +1365,7 @@ hook.Add( "OnEntityCreated", "ReplaceEnt", function( ent )
 			end)
 
             if ent:GetClass() == "npc_grenade_frag" then
-                Replacment.timer = CurTime()
+                Replacement.timer = CurTime()
             end
 
             OverrideWeaponSpawn = false
