@@ -45,12 +45,13 @@ SWEP.AttackPos = Vector(0, 0, 0)
 SWEP.HoldType = "melee"
 
 SWEP.DamageType = DMG_CLUB
-SWEP.DamagePrimary = 15
-SWEP.DamageSecondary = 10
-SWEP.PenetrationPrimary = 1.2
-SWEP.PenetrationSecondary = 0.9
-SWEP.MaxPenLen = 4
-SWEP.PainMultiplier = 0.4
+SWEP.DamagePrimary = 25
+SWEP.DamageSecondary = 21
+
+SWEP.PenetrationPrimary = 1
+SWEP.PenetrationSecondary = 2
+
+SWEP.MaxPenLen = 50
 SWEP.PenetrationSizePrimary = 0.8
 SWEP.PenetrationSizeSecondary = 1
 SWEP.StaminaPrimary = 10
@@ -58,12 +59,11 @@ SWEP.StaminaSecondary = 8
 SWEP.AttackLen1 = 90
 SWEP.AttackLen2 = 90
 
-SWEP.AttackSwing = "weapons/iceaxe/iceaxe_swing1.wav"
-SWEP.AttackHit = "snd_jack_hmcd_hammerhit.wav"
-SWEP.Attack2Hit = "snd_jack_hmcd_hammerhit.wav"
-SWEP.AttackHitFlesh = "snd_jack_hmcd_axehit.wav"
-SWEP.Attack2HitFlesh = "snd_jack_hmcd_axehit.wav"
-SWEP.DeploySnd = "Flesh.ImpactSoft"
+SWEP.AttackHit = "physics/wood/wood_plank_impact_hard1.wav"
+SWEP.Attack2Hit = "physics/wood/wood_plank_impact_hard1.wav"
+SWEP.AttackHitFlesh = "Flesh.ImpactHard"
+SWEP.Attack2HitFlesh = "Flesh.ImpactHard"
+SWEP.DeploySnd = "physics/wood/wood_plank_impact_soft2.wav"
 
 SWEP.weight = 1.2
 
