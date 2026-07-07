@@ -273,6 +273,45 @@ if CLIENT then
 	local brainhemorrhage = Material( "overlays/brainhemorrhageoverlay.png" )
 
 	local hg_gopro = ConVarExists("hg_gopro") and GetConVar("hg_gopro") or CreateClientConVar("hg_gopro", "0", true, false, "Toggle GoPro-like first-person camera view", 0, 1)
+
+	local visorSwayX, visorSwayY, visorStepPhase = 0, 0, 0
+
+	net.Receive("hg_visor_crack", function()
+		local hitPos = net.ReadVector()
+		if not IsValid(lply) then return end
+		local scr = hitPos:ToScreen()
+		local sw, sh = ScrW(), ScrH()
+		local u = math.Clamp((scr.visible and scr.x or sw * 0.5) / sw, 0.08, 0.92)
+		local v = math.Clamp((scr.visible and scr.y or sh * 0.5) / sh, 0.08, 0.92)
+		local segments = {}
+		local scale = math.Rand(0.7, 1.3)
+		local branches = math.random(6, 10)
+		for i = 1, branches do
+			local ang = (i / branches) * math.pi * 2 + math.Rand(-0.3, 0.3)
+			local len = math.random(50, 130) * scale
+			local ex, ey = math.cos(ang) * len, math.sin(ang) * len
+			segments[#segments + 1] = {0, 0, ex, ey}
+			for j = 1, math.random(1, 3) do
+				local t = math.Rand(0.25, 0.85)
+				local sx, sy = math.cos(ang) * len * t, math.sin(ang) * len * t
+				local a2 = ang + math.Rand(-1.2, 1.2)
+				local l2 = math.random(15, 45) * scale
+				segments[#segments + 1] = {sx, sy, sx + math.cos(a2) * l2, sy + math.sin(a2) * l2}
+			end
+		end
+		lply.visorCracks = lply.visorCracks or {}
+		lply.visorCracks[#lply.visorCracks + 1] = {u = u, v = v, segments = segments}
+	end)
+
+	hook.Add("OnNetVarSet", "VisorCrackClear", function(index, key, var)
+		if key ~= "Armor" or not IsValid(lply) or index ~= lply:EntIndex() then return end
+		local oldFace = lply.armors and lply.armors["face"]
+		local newFace = var and var["face"]
+		if oldFace ~= newFace then
+			lply.visorCracks = nil
+		end
+	end)
+
 	hook.Add("Post Pre Post Processing", "renderHelmetThingy", function()
 		cam.IgnoreZ(true)
 		//cam.Start2D()
@@ -286,8 +325,21 @@ if CLIENT then
 		if GetViewEntity() != lply then
 			return
 		end
-	
+
 		lply.NVGEnabled = NVGEnabled
+
+		local speedFrac = math.Clamp((IsValid(lply) and lply:GetVelocity():Length2D() or 0) / 220, 0, 1.5)
+		visorStepPhase = visorStepPhase + FrameTime() * (1.4 + speedFrac * 1.3)
+		local ph = visorStepPhase * math.pi * 2
+		local runFrac = math.Clamp((speedFrac - 0.75) / 0.75, 0, 1)
+		local walkFrac = 1 - runFrac
+		local s = math.sin(ph)
+		local asym = s >= 0 and s ^ 1.5 or -((-s) ^ 0.65)
+		local rawY = asym * (0.8 + runFrac * 0.4) + (math.sin(ph * 2 + 0.9) * 0.32 + math.sin(ph * 0.63 + 1.7) * 0.20 + math.sin(ph * 3) * math.max(0, s) * 0.16) * walkFrac * 0.9
+		local rawX = math.sin(ph * 0.5 + 0.4) * 0.55 + math.sin(ph * 1.13) * 0.2
+		local a = math.Clamp(FrameTime() * 10, 0, 1)
+		visorSwayY = visorSwayY + (rawY * speedFrac * 22 - visorSwayY) * a
+		visorSwayX = visorSwayX + (rawX * runFrac * 14 - visorSwayX) * a
 
 		if armors and armors["face"] then
 
@@ -316,8 +368,27 @@ if CLIENT then
 
 				surface.SetDrawColor(255,255,255,255)
 				surface.SetMaterial(custommat or mat)
-				surface.DrawTexturedRect(-1, -1, ScrW()+1, ScrH()+1)
-				
+				surface.DrawTexturedRect(-60 + visorSwayX, -60 + visorSwayY, ScrW() + 120, ScrH() + 120)
+
+				if lply.visorCracks then
+					draw.NoTexture()
+					local sw, sh = ScrW(), ScrH()
+					for _, crack in ipairs(lply.visorCracks) do
+						local cx = crack.u * sw + visorSwayX
+						local cy = crack.v * sh + visorSwayY
+						surface.SetDrawColor(30, 30, 30, 230)
+						for _, seg in ipairs(crack.segments) do
+							surface.DrawLine(cx + seg[1] + 1, cy + seg[2] + 1, cx + seg[3] + 1, cy + seg[4] + 1)
+						end
+						surface.SetDrawColor(235, 235, 240, 220)
+						for _, seg in ipairs(crack.segments) do
+							surface.DrawLine(cx + seg[1], cy + seg[2], cx + seg[3], cy + seg[4])
+						end
+						surface.SetDrawColor(10, 10, 10, 255)
+						surface.DrawRect(cx - 2, cy - 2, 4, 4)
+					end
+				end
+
 				if lply:GetNetVar("zableval_masku", false) and lply.organism and not lply.organism.otrub then
 					draw.NoTexture()
 					surface.SetDrawColor(100,0,0,240)
@@ -345,11 +416,11 @@ if CLIENT then
 
 		if armors and armors["head"] then
 			local custommat = hg.armor.head[armors["head"]].viewmaterial
-			
+
 			if custommat != false then
 				surface.SetDrawColor(255,255,255,255)
 				surface.SetMaterial(custommat or mat)
-				surface.DrawTexturedRect(-1, -1, ScrW()+1, ScrH()+1)
+				surface.DrawTexturedRect(-60 + visorSwayX, -60 + visorSwayY, ScrW() + 120, ScrH() + 120)
 			end
 			
 			local customviewfunc = armors["head"] and hg.armor.head[armors["head"]].customviewrender

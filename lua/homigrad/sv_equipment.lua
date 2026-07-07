@@ -219,6 +219,7 @@ end
 
 -- armorstuff
 util.AddNetworkString("AddFlash")
+util.AddNetworkString("hg_visor_crack")
 
 local ArmorEffect
 local force
@@ -253,7 +254,13 @@ local function protec(org, bone, dmg, dmgInfo, placement, armor, scale, scalepro
 	end
 	
 	scale = scale * (dmgInfo:IsDamageType(DMG_SLASH) and 0.1 or 1)
-	
+
+	if placement == "face" and org.owner:IsPlayer() and hg.armor.face[armor] and hg.armor.face[armor].viewmaterial then
+		net.Start("hg_visor_crack")
+			net.WriteVector(hit and isvector(hit) and hit or dmgInfo:GetDamagePosition())
+		net.Send(org.owner)
+	end
+
 	ArmorEffect(placement, armor, dmgInfo, org, hit, prot)
 
 	if prot < 0 then
