@@ -121,8 +121,20 @@ function hg.AddArmor(ply, equipment, ent)
 		end
 	end
 
+    if placement == "face" and hg.armor.face[equipment] and hg.armor.face[equipment].viewmaterial and ply:IsPlayer() then
+        ply.visorCracks = (ent and ent.visorCracks) or nil
+        if ent then ent.visorCracks = nil end
+        local cracks = ply.visorCracks or {}
+        net.Start("hg_visor_crack")
+            net.WriteUInt(#cracks, 8)
+            for i = 1, #cracks do
+                net.WriteUInt(cracks[i], 20)
+            end
+        net.Send(ply)
+    end
+
     ply.armors[placement] = equipment
-    
+
     ply:SyncArmor()
     return true
 end
@@ -149,6 +161,16 @@ function hg.DropArmorForce(ent, equipment)
         if ent:GetNetVar("zableval_masku", false) then
             equipmentEnt.zablevano = true
             ent:SetNetVar("zableval_masku", false)
+        end
+
+        if placement == "face" and hg.armor.face[equipment] and hg.armor.face[equipment].viewmaterial then
+            equipmentEnt.visorCracks = ent.visorCracks
+            ent.visorCracks = nil
+            if ent:IsPlayer() then
+                net.Start("hg_visor_crack")
+                    net.WriteUInt(0, 8)
+                net.Send(ent)
+            end
         end
 
         local phys = equipmentEnt:GetPhysicsObject()
@@ -200,7 +222,15 @@ function hg.DropArmor(ply, equipment)
             equipmentEnt.zablevano = true
             ply:SetNetVar("zableval_masku", false)
         end
-        
+
+        if placement == "face" and hg.armor.face[equipment] and hg.armor.face[equipment].viewmaterial then
+            equipmentEnt.visorCracks = ply.visorCracks
+            ply.visorCracks = nil
+            net.Start("hg_visor_crack")
+                net.WriteUInt(0, 8)
+            net.Send(ply)
+        end
+
         local phys = equipmentEnt:GetPhysicsObject()
         if IsValid(phys) then phys:SetVelocity(ply:EyeAngles():Forward() * 150) end
         if IsValid(equipmentEnt) then table.RemoveByValue(ply.armors, equipment) end
@@ -256,8 +286,13 @@ local function protec(org, bone, dmg, dmgInfo, placement, armor, scale, scalepro
 	scale = scale * (dmgInfo:IsDamageType(DMG_SLASH) and 0.1 or 1)
 
 	if placement == "face" and org.owner:IsPlayer() and hg.armor.face[armor] and hg.armor.face[armor].viewmaterial then
+		org.owner.visorCracks = org.owner.visorCracks or {}
+		org.owner.visorCracks[#org.owner.visorCracks + 1] = math.random(0, 1048575)
 		net.Start("hg_visor_crack")
-			net.WriteVector(hit and isvector(hit) and hit or dmgInfo:GetDamagePosition())
+			net.WriteUInt(#org.owner.visorCracks, 8)
+			for i = 1, #org.owner.visorCracks do
+				net.WriteUInt(org.owner.visorCracks[i], 20)
+			end
 		net.Send(org.owner)
 	end
 

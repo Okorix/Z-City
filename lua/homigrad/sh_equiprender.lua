@@ -277,38 +277,35 @@ if CLIENT then
 	local visorSwayX, visorSwayY, visorStepPhase = 0, 0, 0
 
 	net.Receive("hg_visor_crack", function()
-		local hitPos = net.ReadVector()
 		if not IsValid(lply) then return end
-		local scr = hitPos:ToScreen()
-		local sw, sh = ScrW(), ScrH()
-		local u = math.Clamp((scr.visible and scr.x or sw * 0.5) / sw, 0.08, 0.92)
-		local v = math.Clamp((scr.visible and scr.y or sh * 0.5) / sh, 0.08, 0.92)
-		local segments = {}
-		local scale = math.Rand(0.7, 1.3)
-		local branches = math.random(6, 10)
-		for i = 1, branches do
-			local ang = (i / branches) * math.pi * 2 + math.Rand(-0.3, 0.3)
-			local len = math.random(50, 130) * scale
-			local ex, ey = math.cos(ang) * len, math.sin(ang) * len
-			segments[#segments + 1] = {0, 0, ex, ey}
-			for j = 1, math.random(1, 3) do
-				local t = math.Rand(0.25, 0.85)
-				local sx, sy = math.cos(ang) * len * t, math.sin(ang) * len * t
-				local a2 = ang + math.Rand(-1.2, 1.2)
-				local l2 = math.random(15, 45) * scale
-				segments[#segments + 1] = {sx, sy, sx + math.cos(a2) * l2, sy + math.sin(a2) * l2}
+		local count = net.ReadUInt(8)
+		lply.visorCracks = {}
+		for i = 1, count do
+			local seed = net.ReadUInt(20)
+			local s = seed + 1
+			local function r()
+				s = (s * 1664525 + 1013904223) % 4294967296
+				return s / 4294967296
 			end
-		end
-		lply.visorCracks = lply.visorCracks or {}
-		lply.visorCracks[#lply.visorCracks + 1] = {u = u, v = v, segments = segments}
-	end)
-
-	hook.Add("OnNetVarSet", "VisorCrackClear", function(index, key, var)
-		if key ~= "Armor" or not IsValid(lply) or index ~= lply:EntIndex() then return end
-		local oldFace = lply.armors and lply.armors["face"]
-		local newFace = var and var["face"]
-		if oldFace ~= newFace then
-			lply.visorCracks = nil
+			local u = 0.15 + r() * 0.7
+			local v = 0.15 + r() * 0.7
+			local segments = {}
+			local scale = 0.7 + r() * 0.6
+			local branches = math.floor(6 + r() * 4)
+			for j = 1, branches do
+				local ang = (j / branches) * math.pi * 2 + (r() - 0.5) * 0.6
+				local len = (50 + r() * 80) * scale
+				local ex, ey = math.cos(ang) * len, math.sin(ang) * len
+				segments[#segments + 1] = {0, 0, ex, ey}
+				for k = 1, math.floor(1 + r() * 3) do
+					local t = 0.25 + r() * 0.6
+					local sx, sy = math.cos(ang) * len * t, math.sin(ang) * len * t
+					local a2 = ang + (r() - 0.5) * 2.4
+					local l2 = 15 + r() * 30
+					segments[#segments + 1] = {sx, sy, sx + math.cos(a2) * l2, sy + math.sin(a2) * l2}
+				end
+			end
+			lply.visorCracks[#lply.visorCracks + 1] = {u = u, v = v, segments = segments}
 		end
 	end)
 
