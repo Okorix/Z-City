@@ -1340,15 +1340,15 @@ hook.Add( "OnEntityCreated", "ReplaceEnt", function( ent )
 
 				local newPhys = ents.Create(oldPhys:GetClass())
 				newPhys:SetPos(oldPhys:GetPos())
-
-				for kv_name, kv_value in pairs(kv) do
-					newPhys:SetKeyValue(kv_name, tostring(kv_value))
-				end
-
+				
 				newPhys:Spawn()
 				newPhys:Activate()
 				newPhys:SetPhysConstraintObjects(phys1, phys2)
 
+				for kv_name, kv_value in pairs(kv) do
+					newPhys:SetKeyValue(kv_name, tostring(kv_value))
+				end
+				
 				if IsValid(oldPhys) then
 					oldPhys:Fire("TurnOff")
 					oldPhys:Fire("Break")
