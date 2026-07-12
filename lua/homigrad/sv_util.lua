@@ -1349,10 +1349,10 @@ hook.Add( "OnEntityCreated", "ReplaceEnt", function( ent )
 				newPhys:Activate()
 				newPhys:SetPhysConstraintObjects(phys1, phys2)
 
-				-- if IsValid(oldPhys) then
-				-- 	oldPhys:Fire("TurnOff")
-				-- 	oldPhys:Fire("Break")
-				-- end
+				if IsValid(oldPhys) then
+					oldPhys:Fire("TurnOff")
+					oldPhys:Fire("Break")
+				end
 			end
 
             if owner then
