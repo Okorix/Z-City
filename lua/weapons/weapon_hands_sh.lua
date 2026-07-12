@@ -1535,9 +1535,9 @@ function SWEP:AttackFront(special_attack, rand)
 		local havekastet = inv["Weapons"] and inv["Weapons"]["hg_brassknuckles"]
 		local SelfForce, Mul = 150, 1 * (havekastet and 1.7 or 1)
 
-		if clawClasses[owner.PlayerClassName] and hgIsDoor(Ent) then
+		if clawClasses[owner.PlayerClassName] and hg.IsDoor(Ent) then
 			if (Ent.Clawed or 0) > (isZomb and math.random(6, 12) or math.random(15, 30)) then
-				hgBlastThatDoor(Ent,self:GetOwner():GetAimVector() * 50 + self:GetOwner():GetVelocity())
+				hg.BlastDoor(Ent,self:GetOwner():GetAimVector() * 50 + self:GetOwner():GetVelocity())
 			else
 				sound.Play(vent[math.random(#vent)], HitPos, 90, math.random(90, 110), 1)
 				sound.Play("physics/wood/wood_crate_impact_hard" .. math.random(4) .. ".wav", HitPos, 90, math.random(90, 110), 1)

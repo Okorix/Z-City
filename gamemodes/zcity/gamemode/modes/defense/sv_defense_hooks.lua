@@ -67,8 +67,8 @@ hook.Add("Think", "NPCAutoSeekPlayer", function()
 
                     ent:TakeDamage(10, npc)
 
-                    if hgIsDoor(ent) and not ent:GetNoDraw() then
-                        hgBlastThatDoor(ent, (ent:GetPos() - npc:GetPos()):GetNormalized() * 50)
+                    if hg.IsDoor(ent) and not ent:GetNoDraw() then
+                        hg.BlastDoor(ent, (ent:GetPos() - npc:GetPos()):GetNormalized() * 50)
                     end
 
                     if IsValid(phys) then

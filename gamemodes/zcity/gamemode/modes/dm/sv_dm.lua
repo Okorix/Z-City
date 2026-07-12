@@ -242,9 +242,9 @@ function MODE:RoundThink()
 				continue
 			end
 
-			if hgIsDoor(ent) then
+			if hg.IsDoor(ent) then
 				if !ent:GetNoDraw() then
-					hgBlastThatDoor(ent)
+					hg.BlastDoor(ent)
 				end
 
 				continue

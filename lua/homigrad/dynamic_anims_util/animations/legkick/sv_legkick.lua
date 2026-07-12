@@ -176,7 +176,7 @@ function PLAYER:LegAttack()
 
                         ent:SetVelocity(normal * 150)
                     end
-                    if hgIsDoor(ent) and !ent:GetNoDraw() then
+                    if hg.IsDoor(ent) and !ent:GetNoDraw() then
                         ent.HP = ent.HP or 200
                         ent.HP = ent.HP - dmg * (tr.MatType == MAT_METAL and 1 or 2)
                         ent:EmitSound( "physics/wood/wood_crate_impact_hard" .. math.random(1,4) .. ".wav" )
@@ -202,7 +202,7 @@ function PLAYER:LegAttack()
                         end
 
                         if ent.HP <= 0 then
-                            hgBlastThatDoor(ent, normal * 125)
+                            hg.BlastDoor(ent, normal * 125)
                         end
                     end
                 end

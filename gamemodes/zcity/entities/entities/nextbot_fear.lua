@@ -126,7 +126,7 @@ function ENT:BehaveUpdate( fInterval )
         local owner = hg.RagdollOwner(ent) or ent
 
         local tr = util.QuickTrace(self:GetPos(), self:GetVelocity(), {self, ent})
-        if IsValid(tr.Entity) and hgIsDoor(tr.Entity) and tr.Entity:GetInternalVariable( "m_eDoorState" ) == 0 then
+        if IsValid(tr.Entity) and hg.IsDoor(tr.Entity) and tr.Entity:GetInternalVariable( "m_eDoorState" ) == 0 then
             
             tr.Entity:Use(owner)
         end

@@ -176,7 +176,7 @@ local function callbackBullet(self, tr, dmg, force, bullet, penetration)
 					local _, hitNormal2 = WorldToLocal(hit.HitPos, hit.HitNormal:Angle(), ent:GetPos(), ent:GetAngles())
 					table.insert(hg.bulletholes, {hitPos2, dir2, dist, hitNormal2, size, ent})
 
-					if hgIsDoor(ent) then -- open the areaportal so it can be seen through
+					if hg.IsDoor(ent) then -- open the areaportal so it can be seen through
 						for i, enta in ipairs(ents.FindByClass("func_areaportal")) do
 							if enta:GetInternalVariable("target") == ent:GetName() then
 								enta:SetKeyValue("target", "")

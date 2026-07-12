@@ -12,7 +12,7 @@ end
 
 hook.Add("PlayerUse", "ZManipUseAnim", function(ply, ent)
 	--print(ent,ent.Use)
-	if IsValid(ent) and !ent:IsRagdoll() and ent.Use and (!ply.ZManipInteractCD or ply.ZManipInteractCD < CurTime()) and !hgIsDoor(ent) then
+	if IsValid(ent) and !ent:IsRagdoll() and ent.Use and (!ply.ZManipInteractCD or ply.ZManipInteractCD < CurTime()) and !hg.IsDoor(ent) then
 		if string.find(ent:GetClass(), "prop") or string.find(ent:GetClass(), "breakable") or string.find(ent:GetClass(), "ladder") then return end
 		ply.ZManipInteractCD = CurTime() + 0.95
 		ply.ZManipOldUse = ply:KeyDown(IN_USE)

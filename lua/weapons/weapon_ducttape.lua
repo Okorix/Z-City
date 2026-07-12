@@ -297,7 +297,7 @@ function SWEP:PrimaryAttack()
 		if Go then
 			if self:GetHolding() < 100 then return end
 			local DoorSealed = false
-			if hgIsDoor(TrOne.Entity) then
+			if hg.IsDoor(TrOne.Entity) then
 				DoorSealed = true
 				if not DoorIsOpen(TrOne.Entity) then
 					if not TrOne.Entity.LockedDoor then TrOne.Entity.LockedDoorMap = true end
@@ -309,7 +309,7 @@ function SWEP:PrimaryAttack()
 				TrOne.Entity.LockedDoor = self.TapeAmount
 			end
 
-			if hgIsDoor(TrTwo.Entity) then
+			if hg.IsDoor(TrTwo.Entity) then
 				DoorSealed = true
 				if not DoorIsOpen(TrTwo.Entity) then
 					if not TrTwo.Entity.LockedDoor then TrTwo.Entity.LockedDoorMap = true end

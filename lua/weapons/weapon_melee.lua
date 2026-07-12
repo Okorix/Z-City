@@ -1550,7 +1550,7 @@ function SWEP:CutDuct()
     local ent = hg.eyeTrace(self:GetOwner()).Entity
     
     if IsValid(ent) then
-        if hgIsDoor(ent) and ent.LockedDoor then
+        if hg.IsDoor(ent) and ent.LockedDoor then
             ent.LockedDoor = ent.LockedDoor - FrameTime() * 10
             
             if (ent.SoundTime or 0) < CurTime() then

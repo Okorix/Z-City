@@ -318,7 +318,7 @@ function SWEP:SecondaryAttack()
 			if self:CanNail(NewTr) then
 				if not NewTr.HitSky then NewEnt = NewTr.Entity end
 				if NewEnt and (IsValid(NewEnt) or NewEnt:IsWorld()) and not (NewEnt:IsPlayer() or NewEnt:IsNPC() or (NewEnt == Tr.Entity)) then
-					if hgIsDoor(Tr.Entity) then
+					if hg.IsDoor(Tr.Entity) then
 						if Owner:GetAmmoCount(self.Ammo) > (Owner.Profession and Owner.Profession == "builder" and 1 or 2) then
 							if not DoorIsOpen(Tr.Entity) then
 								if not Tr.Entity.LockedDoorNail then Tr.Entity.LockedDoorMap = true end

@@ -81,8 +81,8 @@ function SWEP:SecondaryAttack()
 end
 
 function SWEP:PrimaryAttackAdd(ent,trace)
-    if hgIsDoor(ent) and math.random(5) > 3 then
-        hgBlastThatDoor(ent,self:GetOwner():GetAimVector() * 50 + self:GetOwner():GetVelocity())
+    if hg.IsDoor(ent) and math.random(5) > 3 then
+        hg.BlastDoor(ent,self:GetOwner():GetAimVector() * 50 + self:GetOwner():GetVelocity())
     end
 
     local phys = ent:GetPhysicsObjectNum(trace.PhysicsBone)

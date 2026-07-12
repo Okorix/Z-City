@@ -514,7 +514,7 @@ hook.Add("EntityTakeDamage", "homigrad-damage", function(ent, dmgInfo)
 		--dmgInfo:SetDamagePosition(ent:GetPos())
 	end
 
-	--[[if hgIsDoor(ent) and ent.LockedDoor and dmgInfo:IsDamageType(DMG_SLASH) then
+	--[[if hg.IsDoor(ent) and ent.LockedDoor and dmgInfo:IsDamageType(DMG_SLASH) then
 		ent.LockedDoor = ent.LockedDoor - dmgInfo:GetDamage()
 		if ent.LockedDoor <= 0 then
 			ent:Fire("unlock","",0)

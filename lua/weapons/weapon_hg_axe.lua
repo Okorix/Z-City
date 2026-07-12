@@ -120,8 +120,8 @@ function SWEP:CanSecondaryAttack()
 end
 
 function SWEP:PrimaryAttackAdd(ent)
-    if hgIsDoor(ent) and math.random(7) > 3 then
-        hgBlastThatDoor(ent,self:GetOwner():GetAimVector() * 50 + self:GetOwner():GetVelocity())
+    if hg.IsDoor(ent) and math.random(7) > 3 then
+        hg.BlastDoor(ent,self:GetOwner():GetAimVector() * 50 + self:GetOwner():GetVelocity())
     end
 end
 

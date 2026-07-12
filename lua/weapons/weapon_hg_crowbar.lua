@@ -141,8 +141,8 @@ function SWEP:PrimaryAttack()
 end
 
 function SWEP:PrimaryAttackAdd(ent)
-    if hgIsDoor(ent) and math.random(10) > 8 then
-        hgBlastThatDoor(ent,self:GetOwner():GetAimVector() * 30 + self:GetOwner():GetVelocity())
+    if hg.IsDoor(ent) and math.random(10) > 8 then
+        hg.BlastDoor(ent,self:GetOwner():GetAimVector() * 30 + self:GetOwner():GetVelocity())
     end
 end
 

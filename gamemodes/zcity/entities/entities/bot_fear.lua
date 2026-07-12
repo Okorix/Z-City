@@ -150,15 +150,15 @@ if SERVER then
         for i = 1, #self.Path - 1 do
             local tr = util.QuickTrace(self.Path[i], self.Path[i + 1] - self.Path[i], {self, self.Victim})
             
-            if !IsValid(tr.Entity) or !hgIsDoor(tr.Entity) then
+            if !IsValid(tr.Entity) or !hg.IsDoor(tr.Entity) then
                 tr = util.QuickTrace(self.Path[i] + (self.Path[i + 1] - self.Path[i]) * 0.5, (self.Path[i + 1] - self.Path[i]):Angle():Right() * 1000, {self, self.Victim})
             end
 
-            if !IsValid(tr.Entity) or !hgIsDoor(tr.Entity) then
+            if !IsValid(tr.Entity) or !hg.IsDoor(tr.Entity) then
                 tr = util.QuickTrace(self.Path[i] + (self.Path[i + 1] - self.Path[i]) * 0.5, (self.Path[i + 1] - self.Path[i]):Angle():Right() * -1000, {self, self.Victim})
             end
 
-            if IsValid(tr.Entity) and hgIsDoor(tr.Entity) and !DoorIsOpen2( tr.Entity ) then
+            if IsValid(tr.Entity) and hg.IsDoor(tr.Entity) and !DoorIsOpen2( tr.Entity ) then
                 --fastUseDoor(tr.Entity, self.Victim)
                 self.OpenDoorIds[i] = tr.Entity
             end
@@ -269,28 +269,28 @@ if SERVER then
                 local tr = util.QuickTrace(ent:GetPos(), (p2 - p1):Angle():Forward() * 500, {self, ent})
 
                 local door = tr.Entity
-                if IsValid(door) and hgIsDoor(door) and not door:GetNoDraw() and !DoorIsOpen2(door) then
+                if IsValid(door) and hg.IsDoor(door) and not door:GetNoDraw() and !DoorIsOpen2(door) then
                     fastUseDoor(door, self.Victim)
                 end
 
                 local tr = util.QuickTrace(ent:GetPos(), (p2 - p1):Angle():Forward() * -500, {self, ent})
 
                 local door = tr.Entity
-                if IsValid(door) and hgIsDoor(door) and not door:GetNoDraw() and DoorIsOpen2(door) then
+                if IsValid(door) and hg.IsDoor(door) and not door:GetNoDraw() and DoorIsOpen2(door) then
                     fastUseDoor(door, self.Victim)
                 end
 
                 local tr = util.QuickTrace(ent:GetPos(), (p2 - p1):Angle():Right() * 125 + (p2 - p1):Angle():Forward() * -500, {self, ent})
 
                 local door = tr.Entity
-                if IsValid(door) and hgIsDoor(door) and not door:GetNoDraw() and DoorIsOpen2(door) then
+                if IsValid(door) and hg.IsDoor(door) and not door:GetNoDraw() and DoorIsOpen2(door) then
                     fastUseDoor(door, self.Victim)
                 end
 
                 local tr = util.QuickTrace(ent:GetPos(), (p2 - p1):Angle():Right() * -125 + (p2 - p1):Angle():Forward() * -500, {self, ent})
 
                 local door = tr.Entity
-                if IsValid(door) and hgIsDoor(door) and not door:GetNoDraw() and DoorIsOpen2(door) then
+                if IsValid(door) and hg.IsDoor(door) and not door:GetNoDraw() and DoorIsOpen2(door) then
                     fastUseDoor(door, self.Victim)
                 end
 

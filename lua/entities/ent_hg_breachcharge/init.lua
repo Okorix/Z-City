@@ -68,8 +68,8 @@ function ENT:Detonate()
 			ent:Fire("break", "", 0)
 		elseif (ent ~= self) and (ent:GetClass() == "func_physbox") then
 			constraint.RemoveAll(ent)
-		elseif (ent ~= self) and hgIsDoor(ent) and not ent:GetNoDraw() then
-			hgBlastThatDoor(ent, (ent:GetPos() - self:GetPos()):GetNormalized() * 750)
+		elseif (ent ~= self) and hg.IsDoor(ent) and not ent:GetNoDraw() then
+			hg.BlastDoor(ent, (ent:GetPos() - self:GetPos()):GetNormalized() * 750)
 		end
 	end
 

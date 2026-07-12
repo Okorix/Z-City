@@ -758,7 +758,7 @@ function hgWreckBuildings(blaster, pos, power, range, ignoreVisChecks) -- taken 
 	end)
 end
 
-function hgIsDoor(ent)
+function hg.IsDoor(ent)
 	local Class = ent:GetClass()
 
 	return (Class == "prop_door") or (Class == "prop_door_rotating") or (Class == "func_door") or (Class == "func_door_rotating")
@@ -766,7 +766,7 @@ end
 
 function hgBlastDoors(blaster, pos, power, range, ignoreVisChecks) -- taken from JMod
 	for k, door in pairs(ents.FindInSphere(pos, 40 * power * (range or 1))) do
-		if hgIsDoor(door) and hook.Run("hg_CanDestroyDoor", door, blaster, pos, power, range, ignore) ~= false then
+		if hg.IsDoor(door) and hook.Run("hg_CanDestroyDoor", door, blaster, pos, power, range, ignore) ~= false then
 			local proceed = ignoreVisChecks
 
 			if not proceed then
@@ -775,7 +775,7 @@ function hgBlastDoors(blaster, pos, power, range, ignoreVisChecks) -- taken from
 			end
 
 			if proceed then
-				hgBlastThatDoor(door, (door:LocalToWorld(door:OBBCenter()) - pos):GetNormalized() * 1000)
+				hg.BlastDoor(door, (door:LocalToWorld(door:OBBCenter()) - pos):GetNormalized() * 1000)
 			end
 		end
 		if door:GetClass() == "func_breakable_surf" then
@@ -802,7 +802,7 @@ function DoorIsOpen2( door )
 	end
 end
 
-function hgBlastThatDoor(ent, vel) -- taken from JMod
+function hg.BlastDoor(ent, vel) -- taken from JMod
 	local Moddel, Pozishun, Ayngul, Muteeriul, Skin = ent:GetModel(), ent:GetPos(), ent:GetAngles(), ent:GetMaterial(), ent:GetSkin()
 	sound.Play("Wood_Crate.Break", Pozishun, 60, 100)
 	sound.Play("Wood_Furniture.Break", Pozishun, 60, 100)
