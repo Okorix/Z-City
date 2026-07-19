@@ -299,6 +299,7 @@ if SERVER then
 		
 		if #drum.high_point < 15 then
 			drum.high_point[#drum.high_point + 1] = {localPos, CurTime()}
+			ent:SetNWInt("drumHoles", #drum.high_point)
 		end
 	end)
 else

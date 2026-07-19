@@ -1842,3 +1842,16 @@ hook.Add("PlayerDeath", "HMCD_UpdateTraitorsList", function(ply)
 		end)
 	end)
 end)
+
+local function SpecSHTF(ply,cmd,args)
+	if IsValid(ply) and not ply:IsAdmin() then ply:ChatPrint("You don't have access") return end
+
+	if(args[1]=="1")then
+		NextRound("soe")
+		PrintMessage(HUD_PRINTTALK,"SHTF mode specified as true")
+	elseif(args[1]=="0")then
+		NextRound("standard")
+		PrintMessage(HUD_PRINTTALK,"SHTF mode specified as false")
+	end
+end
+concommand.Add("homicide_setmode",SpecSHTF)

@@ -378,3 +378,80 @@ function SWEP:SprayDecals()
 	local Tr7 = util.QuickTrace(pos, (aim + Vector(-.15, 0, 0)) * 70, {Owner})
 	util.Decal("hmcd_jackatape", Tr7.HitPos + Tr7.HitNormal, Tr7.HitPos - Tr7.HitNormal)
 end
+
+if SERVER then
+	util.AddNetworkString("ducttape_seal_drum")
+
+	net.Receive("ducttape_seal_drum", function(len, ply)
+		local ent = net.ReadEntity()
+		if not IsValid(ply) or not IsValid(ent) then return end
+		if ply:GetPos():DistToSqr(ent:GetPos()) > 100 * 100 then return end
+
+		local wep = ply:GetActiveWeapon()
+		if not IsValid(wep) or wep:GetClass() ~= "weapon_ducttape" then return end
+
+		local drum = hg.drums[ent:EntIndex()]
+		if not drum then return end
+
+		local holes = 0
+		for i = #drum.high_point, 2, -1 do
+			holes = holes + 1
+		end
+
+		if holes == 0 then return end
+
+		local cost = holes * 10
+		if wep:GetTapeAmount() < cost then
+			ply:ChatPrint("Not enough tape! Need " .. cost .. ", have " .. wep:GetTapeAmount())
+			return
+		end
+
+		wep.TapeAmount = wep.TapeAmount - cost
+		wep:SetTapeAmount(wep.TapeAmount)
+
+		for i = #drum.high_point, 2, -1 do
+			local point = drum.high_point[i]
+			local worldPos = LocalToWorld(point[1], angle_zero, ent:GetPos(), ent:GetAngles())
+			local dir = (worldPos - ent:LocalToWorld(ent:OBBCenter())):GetNormalized()
+			util.Decal("hmcd_jackatape", worldPos + dir * 2, worldPos - dir * 2)
+			table.remove(drum.high_point, i)
+		end
+
+		ent:SetNWInt("drumHoles", #drum.high_point)
+
+		if drum.loopsound and #drum.high_point <= 1 and ent:GetNWBool("corkState", true) then
+			drum.loopsound:Stop()
+			drum.leaking = false
+		end
+
+		sound.Play("snd_jack_hmcd_ducttape.wav", ent:GetPos(), 65, math.random(80, 120))
+		ply:ChatPrint("Sealed " .. holes .. " hole(s)")
+
+		if wep.TapeAmount <= 0 then
+			wep:Remove()
+		end
+	end)
+end
+
+if CLIENT then
+	hook.Add("radialOptions", "ducttape_seal_drums", function()
+		local wep = LocalPlayer():GetActiveWeapon()
+		if not IsValid(wep) or wep:GetClass() ~= "weapon_ducttape" then return end
+
+		local tr = hg.eyeTrace(LocalPlayer(), 100)
+		if not tr or not IsValid(tr.Entity) then return end
+
+		local ent = tr.Entity
+		if not hg.gas_models or not hg.gas_models[ent:GetModel()] then return end
+		if ent:GetNWInt("drumHoles", 0) <= 1 then return end
+
+		hg.radialOptions[#hg.radialOptions + 1] = {
+			[1] = function()
+				net.Start("ducttape_seal_drum")
+				net.WriteEntity(ent)
+				net.SendToServer()
+			end,
+			[2] = "Seal Holes"
+		}
+	end)
+end
