@@ -1497,7 +1497,7 @@ local IsValid = IsValid
 		"prop_dynamic"
 	}
 
-	hook.Add("FindUseEntity","findhguse",function(ply,heldent)
+	hook.Add("FindUseEntity","HG_FindUseEntity",function(ply,heldent)
 		local eyetr = hg.eyeTrace(ply,100,nil,nil,nil,checkUse)
 		local ent = eyetr and eyetr.Entity
 		local tr

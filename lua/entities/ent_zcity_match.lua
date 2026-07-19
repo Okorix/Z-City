@@ -78,17 +78,17 @@ function ENT:Initialize()
 end
 
 function ENT:Use(ply)
-	if self:IsPlayerHolding() or (self.UseCD or 0) > CurTime() then
-		ply:DropObject(self)
+	if (self.UseCD or 0) > CurTime() then return end
 
-		self.UseCD = CurTime() + 0.3
+	if self:IsPlayerHolding() then
+		ply:DropObject(self)
+		self.UseCD = CurTime() + 0.5
 		return
 	end
 
 	ply:PickupObject(self)
 	self.owner = ply
-
-	self.UseCD = CurTime() + 0.6
+	self.UseCD = CurTime() + 1
 end
 
 
