@@ -81,9 +81,18 @@ if SERVER then
 		if (ply.nextCorkUse or 0) > CurTime() then return end
 		ply.nextCorkUse = CurTime() + 0.5
 
-		ent:SetNWBool("corkState", not ent:GetNWBool("corkState", true))
+		local newState = not ent:GetNWBool("corkState", true)
+		ent:SetNWBool("corkState", newState)
 		ent:SetNWFloat("corkUseTime", CurTime())
 		ent:EmitSound("physics/plastic/plastic_box_impact_hard" .. math.random(1, 4) .. ".wav", 60, math.random(90, 110))
+
+		local drum = hg.drums[ent:EntIndex()]
+		if newState and drum and #drum.high_point <= 1 then
+			if drum.loopsound then
+				drum.loopsound:Stop()
+			end
+			drum.leaking = false
+		end
 	end)
 end
 
