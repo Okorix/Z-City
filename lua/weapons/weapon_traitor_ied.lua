@@ -271,8 +271,8 @@ local function ExplodeTheItem(self,ent)
 				phys:ApplyForceCenter(forceadd)
 			end
 
-			--hgWreckBuildings(ent, EntPos, BlastDamage / 400, BlastDis/8, false)
-			hgBlastDoors(ent, EntPos, BlastDamage / 400, BlastDis/8, false)
+			--hg.WreckBuildings(ent, EntPos, BlastDamage / 400, BlastDis/8, false)
+			hg.BlastDoors(ent, EntPos, BlastDamage / 400, BlastDis/8, false)
 			util.ScreenShake( EntPos, 45, 225, 2.5, 3000 )
 
 			if FireEnts[ent:GetModel()] then

@@ -1500,9 +1500,10 @@ local IsValid = IsValid
 	hook.Add("FindUseEntity","findhguse",function(ply,heldent)
 		local eyetr = hg.eyeTrace(ply,100,nil,nil,nil,checkUse)
 		local ent = eyetr and eyetr.Entity
+		local tr
 
 		if not IsValid(ent) and eyetr then
-			local tr = {}
+			tr = {}
 			tr.start = eyetr.HitPos
 			tr.endpos = eyetr.HitPos
 			tr.filter = checkUse
@@ -1518,6 +1519,8 @@ local IsValid = IsValid
 		if not IsValid(ent) then
 			ent = heldent
 		end
+
+		hook_Run("HG_FindUseEntity", ply, ent, tr)
 
 		return ent
 	end)

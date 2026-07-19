@@ -32,8 +32,8 @@ local ExpTypes = {
         local SelfPos, Owner = Ent:LocalToWorld(Ent:OBBCenter()), (Ent.owner or Ent)
 		local rad = (Force / 8)
         util.BlastDamage(Ent, Owner, SelfPos, rad / 0.01905, Force * 2)
-		--hgWreckBuildings(Ent, SelfPos, Force / 50)
-		hgBlastDoors(Ent, SelfPos, Force / 50, Force / 15)
+		--hg.WreckBuildings(Ent, SelfPos, Force / 50)
+		hg.BlastDoors(Ent, SelfPos, Force / 50, Force / 15)
 		--ParticleEffect("pcf_jack_incendiary_ground_sm2",SelfPos + vector_up * 1,vector_up:Angle())
 		hg.ExplosionEffect(SelfPos, Force / 0.2, 80)
 
@@ -152,8 +152,8 @@ local ExpTypes = {
 		local rad = (Force / 8)
         local SelfPos, Owner = Ent:LocalToWorld(Ent:OBBCenter()), (Ent.owner or Ent)
         util.BlastDamage(Ent, Owner, SelfPos, (Force/7.5) / 0.01905, Force * 1)
-		--hgWreckBuildings(Ent, SelfPos, Force / 50)
-		hgBlastDoors(Ent, SelfPos, Force / 50)
+		--hg.WreckBuildings(Ent, SelfPos, Force / 50)
+		hg.BlastDoors(Ent, SelfPos, Force / 50)
 
         --ParticleEffect("pcf_jack_groundsplode_medium",SelfPos + vector_up * 1,vector_up:Angle())
 		hg.ExplosionEffect(SelfPos, Force / 0.2, 80)
@@ -259,8 +259,8 @@ local ExpTypes = {
 		local rad = (Force / 8)
         local SelfPos, Owner = Ent:LocalToWorld(Ent:OBBCenter()), (Ent.owner or Ent)
         util.BlastDamage(Ent, Owner, SelfPos, (Force / 7.5) / 0.01905, Force * 1)
-		--hgWreckBuildings(Ent, SelfPos, Force / 50)
-		hgBlastDoors(Ent, SelfPos, Force / 50)
+		--hg.WreckBuildings(Ent, SelfPos, Force / 50)
+		hg.BlastDoors(Ent, SelfPos, Force / 50)
 
         --ParticleEffect("pcf_jack_groundsplode_small",SelfPos + vector_up * 1,vector_up:Angle())
 		hg.ExplosionEffect(SelfPos, Force / 0.2, 80)

@@ -109,8 +109,8 @@ function ENT:Detonate()
 
 	util.BlastDamageInfo( boom, SelfPos, self.BlastDis / 0.01905 )]]--
 	util.BlastDamage(self, Owner, SelfPos, self.BlastDis / 0.01905, self.BlastDamage * 1)
-	hgWreckBuildings(self, SelfPos, self.BlastDamage / 100, self.BlastDis/6, false)
-	hgBlastDoors(self, SelfPos, self.BlastDamage / 100, self.BlastDis/6, false)
+	hg.WreckBuildings(self, SelfPos, self.BlastDamage / 100, self.BlastDis/6, false)
+	hg.BlastDoors(self, SelfPos, self.BlastDamage / 100, self.BlastDis/6, false)
 	if self:WaterLevel() == 0 then
 		ParticleEffect("gf2_rocket_large_explosion_01",self:GetPos(),-vector_up:Angle())
 	else

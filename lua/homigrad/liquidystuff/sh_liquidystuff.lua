@@ -23,6 +23,10 @@ local vecHole = {
 	--["models/props_junk/metalgascan.mdl"] = Vector(0, -7, 11),
 }
 
+local capPositions = {
+	["models/props_c17/oildrum001_explosive.mdl"] = {pos = Vector(10, 0, 42.5), openOffset = Vector(-10, 0, 0)},
+}
+
 PrecacheParticleSystem("env_fire_medium")
 
 if SERVER then
@@ -48,15 +52,45 @@ if SERVER then
 				}
 			}
 			table.insert(hg.drums2, ent)
+
+			if capPositions[ent:GetModel()] then
+				ent:SetNWBool("corkState", true)
+				ent:SetNWFloat("corkUseTime", 0)
+			end
 		end
 	end
 
 	hook.Add("OnEntityCreated", "drum_spawn", function(ent) timer.Simple(0, function() addDrum(ent) end) end)
+
+	hook.Add("HG_FindUseEntity", "drum_cork_use", function(ply, ent, tr)
+		if not IsValid(ent) then return end
+		if not hg.drums[ent:EntIndex()] then return end
+
+		local capData = capPositions[ent:GetModel()]
+		if not capData then return end
+
+		local capWorldPos = ent:LocalToWorld(capData.pos)
+		local eyePos = ply:EyePos()
+		local eyeDir = ply:GetAimVector()
+
+		local toPoint = capWorldPos - eyePos
+		local dot = toPoint:Dot(eyeDir)
+		local closest = eyePos + eyeDir * dot
+		if closest:DistToSqr(capWorldPos) > 144 then return end
+
+		if (ply.nextCorkUse or 0) > CurTime() then return end
+		ply.nextCorkUse = CurTime() + 0.5
+
+		ent:SetNWBool("corkState", not ent:GetNWBool("corkState", true))
+		ent:SetNWFloat("corkUseTime", CurTime())
+		ent:EmitSound("physics/plastic/plastic_box_impact_hard" .. math.random(1, 4) .. ".wav", 60, math.random(90, 110))
+	end)
 end
 
 if SERVER then
 	util.AddNetworkString("gas particle")
 	util.AddNetworkString("gasoline_path")
+	util.AddNetworkString("drums_debug")
 	
 	local time = CurTime()
 	local CurTime = CurTime
@@ -108,6 +142,29 @@ if SERVER then
 		net.Broadcast()
 	end)
 
+	local debugTime = CurTime()
+	hook.Add("Think", "drum_debug_send", function()
+		if debugTime > CurTime() then return end
+		debugTime = debugTime + 1
+
+		for _, ply in player.Iterator() do
+			if ply:IsAdmin() and ply:GetInfo("hg_liquidystuff_debug") == "1" then
+				local sendData = {}
+				for idx, drum in pairs(hg.drums) do
+					if not IsValid(drum.Entity) then continue end
+					sendData[idx] = {
+						Volume = drum.Volume,
+						high_point = drum.high_point,
+						leaking = drum.leaking or false,
+					}
+				end
+				net.Start("drums_debug")
+				net.WriteTable(sendData)
+				net.Send(ply)
+			end
+		end
+	end)
+
 	hook.Add("PostCleanupMap","removetrailsofevidence",function()
 		hg.drums = {}
 		hg.drums2 = {}
@@ -140,7 +197,12 @@ if SERVER then
 		end
 
 		for i, point in pairs(drum.high_point) do
+			if i == 1 and capPositions[ent:GetModel()] and ent:GetNWBool("corkState", true) then
+				continue
+			end
+
 			ent.Volume = drum.Volume
+			ent:SetNWFloat("drumVolume", drum.Volume)
 			local high_point = vecZero
 			high_point:Set(point[1])
 			high_point:Rotate(ent:GetAngles())
@@ -226,11 +288,58 @@ if SERVER then
 		local localPos, localAng = WorldToLocal(dmgPos, angZero, ent:GetPos(), ent:GetAngles())
 		local drum = hg.drums[ent:EntIndex()]
 		
-		if #drum.high_point < 5 then
+		if #drum.high_point < 15 then
 			drum.high_point[#drum.high_point + 1] = {localPos, CurTime()}
 		end
 	end)
 else
+	local capCSModels = {}
+
+	local CAP_LERP_TIME = 0.3
+	local CAP_MODEL = "models/props_junk/PopCan01a.mdl"
+	local CAP_MATERIAL = "models/gibs/metalgibs/metal_gibs"
+
+	hook.Add("PostDrawOpaqueRenderables", "drum_caps", function()
+		for _, ent in ipairs(ents.GetAll()) do
+			if not IsValid(ent) then continue end
+
+			local capData = capPositions[ent:GetModel()]
+			if not capData then continue end
+
+			local csmodel = capCSModels[ent:EntIndex()]
+			if not csmodel or not IsValid(csmodel) then
+				csmodel = ClientsideModel(CAP_MODEL, RENDERGROUP_OPAQUE)
+				csmodel:SetNoDraw(true)
+				csmodel:SetMaterial(CAP_MATERIAL)
+				capCSModels[ent:EntIndex()] = csmodel
+			end
+
+			local closed = ent:GetNWBool("corkState", true)
+			local useTime = ent:GetNWFloat("corkUseTime", 0)
+			local elapsed = CurTime() - useTime
+			local frac = math.Clamp(elapsed / CAP_LERP_TIME, 0, 1)
+
+			local offset = capData.openOffset * (closed and (1 - frac) or frac)
+
+			local localPos = capData.pos + offset
+			local worldPos = ent:LocalToWorld(localPos)
+			local worldAng = ent:GetAngles()
+
+			csmodel:SetPos(worldPos)
+			csmodel:SetAngles(worldAng)
+			csmodel:SetupBones()
+			csmodel:DrawModel()
+		end
+	end)
+
+	hook.Add("EntityRemoved", "drum_cap_cleanup", function(ent)
+		local csmodel = capCSModels[ent:EntIndex()]
+		if IsValid(csmodel) then
+			csmodel:Remove()
+		end
+		capCSModels[ent:EntIndex()] = nil
+	end)
+
 	net.Receive("drums_debug", function()
 		hg.drums = net.ReadTable()
 	end)
@@ -278,73 +387,78 @@ else
 
 	hook.Add("PostCleanupMap","removetrailsofevidence",function()
 		hg.gasolinePath = {}
+		hg.drums = {}
 
 		for i, eff in pairs(hg.effparticles) do
 			if eff and eff:IsValid() then
 				eff:StopEmissionAndDestroyImmediately()
 			end
 		end
+
+		for idx, csmodel in pairs(capCSModels) do
+			if IsValid(csmodel) then
+				csmodel:Remove()
+			end
+		end
+		table.Empty(capCSModels)
 	end)
 
-	hook.Add("HUDPaint","drum_client",function()
-		if true then return end
-		
-        for i, drum in pairs(hg.drums) do
-            local ent = drum.Entity
-			
-            if not IsValid(ent) then
-                hg.drums[i] = nil
-                continue
-            end
-            
-            local pos = ent:GetPos()
-            local maxs, mins, center = ent:OBBMaxs(),ent:OBBMins(),ent:OBBCenter()
+	local debugCvar = CreateClientConVar("hg_liquidystuff_debug", "0", false, true, "Show drum debug info")
 
-            local leaking = false
-            for i, point in pairs(drum.high_point) do
-                local high_point = vecZero
+	hook.Add("PostDrawOpaqueRenderables", "drum_debug_draw", function()
+		if not debugCvar:GetBool() then return end
 
-                high_point:Set(point[1])
-                high_point:Rotate(ent:GetAngles())
+		for _, ent in ipairs(ents.GetAll()) do
+			if not IsValid(ent) then continue end
+			if not whitelistModels[ent:GetModel()] then continue end
 
-                --surface.DrawRect(pos:ToScreen().x,pos:ToScreen().y,10,10)
+			local pos = ent:GetPos()
+			local ang = ent:GetAngles()
+			local volume = ent:GetNWFloat("drumVolume", -1)
+			local cork = ent:GetNWBool("corkState", false)
+			local empty = ent:GetNWBool("EmptyBarrel", false)
 
-                local center = ent:OBBCenter()
-                center:Rotate(ent:GetAngles())
+			local center = ent:OBBCenter()
+			center:Rotate(ang)
 
-                local dot = math.max(math.abs(vector_up:Dot(ent:GetUp())),0.99)
-                
-                local volumePos = center + Vector(0,0,(drum.Volume / (dot) - ent:OBBCenter()[3]))
-                volumePos:Add(ent:GetVelocity() / 8)
-                /*
-                local center = ent:OBBCenter()
-                center:Rotate(ent:GetAngles())
+			local textPos = pos + center + Vector(0, 0, 20)
+			local camPos = EyePos()
 
-                local aa,ab = ent:OBBMaxs(),ent:OBBMins()
-                local min,max = ent:GetRotatedAABB(aa, ab)
+			if textPos:DistToSqr(camPos) > 512 * 512 then continue end
 
-                center[3] = max[3]
-                local volumePos = center - Vector(0,0,45 - drum.Volume)
+			local text = string.format("Vol: %.1f | Cork: %s | Empty: %s", volume, cork and "YES" or "NO", empty and "YES" or "NO")
+			cam.Start2D()
+				local screen = textPos:ToScreen()
+				draw.SimpleTextOutlined(text, "DermaDefault", screen.x, screen.y, color_white, TEXT_ALIGN_CENTER, TEXT_ALIGN_CENTER, 1, color_black)
+			cam.End2D()
 
-                --слишком сложно
-                */
-                
+			local hole = vecHole[ent:GetModel()]
+			if hole then
+				local holeWorld = ent:LocalToWorld(hole + ent:OBBMaxs() + ent:OBBMins())
+				render.SetColorMaterial()
+				render.DrawSphere(holeWorld, 2, 8, 8, Color(0, 255, 0))
+			end
 
-                surface.DrawRect((pos + volumePos):ToScreen().x,(pos + volumePos):ToScreen().y,10,10)
-                surface.DrawRect((pos + high_point):ToScreen().x,(pos + high_point):ToScreen().y,10,10)
-                
-                /*
-                local aa,ab = ent:OBBMaxs(),ent:OBBMins()
-                local _,max = ent:GetRotatedAABB(aa, ab)
-                surface.DrawRect((pos + a):ToScreen().x,(pos + b):ToScreen().y,10,10)
-				*/
-            end
-        end
+			local capData = capPositions[ent:GetModel()]
+			if capData then
+				local capWorld = ent:LocalToWorld(capData.pos)
+				render.SetColorMaterial()
+				render.DrawSphere(capWorld, 2, 8, 8, Color(255, 255, 0))
+			end
 
-		for i,tbl in pairs(hg.gasolinePath) do
-			local pos, ignited = tbl[1], tbl[2]
-			surface.SetDrawColor(255,255,255,255)
-			surface.DrawRect(pos:ToScreen().x,pos:ToScreen().y,10,10)
+			local drum = hg.drums[ent:EntIndex()]
+			if drum and drum.high_point then
+				for i, point in pairs(drum.high_point) do
+					local hpWorld = ent:LocalToWorld(point[1])
+					render.SetColorMaterial()
+					render.DrawSphere(hpWorld, 1.5, 8, 8, Color(255, 0, 0))
+
+					cam.Start2D()
+						local sc = hpWorld:ToScreen()
+						draw.SimpleTextOutlined("#" .. i, "DermaDefault", sc.x, sc.y - 12, Color(255, 100, 100), TEXT_ALIGN_CENTER, TEXT_ALIGN_CENTER, 1, color_black)
+					cam.End2D()
+				end
+			end
 		end
-    end)
+	end)
 end

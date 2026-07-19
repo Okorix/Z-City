@@ -200,8 +200,8 @@ if SERVER then
 
 		util.BlastDamageInfo( boom, SelfPos, self.BlastDis / 0.01905 )]]--
 		util.BlastDamage(self, IsValid(self.owner) and self.owner or Owner, SelfPos, self.BlastDis / 0.01905, self.BlastDamage * 1)
-		hgWreckBuildings(self, SelfPos, self.BlastDamage / 100, self.BlastDis/6, false)
-		hgBlastDoors(self, SelfPos, self.BlastDamage / 100, self.BlastDis/6, false)
+		hg.WreckBuildings(self, SelfPos, self.BlastDamage / 100, self.BlastDis/6, false)
+		hg.BlastDoors(self, SelfPos, self.BlastDamage / 100, self.BlastDis/6, false)
 		
 		hg.ExplosionEffect(SelfPos, self.BlastDis / 0.2, 80)
 

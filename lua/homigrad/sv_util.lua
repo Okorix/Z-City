@@ -689,7 +689,7 @@ end)
 
 local WreckBlacklist = {"gmod_lamp", "gmod_cameraprop", "gmod_light", "ent_jack_gmod_nukeflash"}
 
-function hgWreckBuildings(blaster, pos, power, range, ignoreVisChecks) -- taken from JMod -- this so unstable shit, can crush your game
+function hg.WreckBuildings(blaster, pos, power, range, ignoreVisChecks) -- taken from JMod -- this so unstable shit, can crush your game
 	local origPower = power
 	power = power * 1
 	local maxRange = 250 * power * (range or 1) -- todo: this still doesn't do what i want for the nuke
@@ -758,13 +758,17 @@ function hgWreckBuildings(blaster, pos, power, range, ignoreVisChecks) -- taken 
 	end)
 end
 
+hgWreckBuildings = hg.WreckBuildings
+
 function hg.IsDoor(ent)
 	local Class = ent:GetClass()
 
 	return (Class == "prop_door") or (Class == "prop_door_rotating") or (Class == "func_door") or (Class == "func_door_rotating")
 end
 
-function hgBlastDoors(blaster, pos, power, range, ignoreVisChecks) -- taken from JMod
+hgIsDoor = hg.IsDoor
+
+function hg.BlastDoors(blaster, pos, power, range, ignoreVisChecks) -- taken from JMod
 	for k, door in pairs(ents.FindInSphere(pos, 40 * power * (range or 1))) do
 		if hg.IsDoor(door) and hook.Run("hg_CanDestroyDoor", door, blaster, pos, power, range, ignore) ~= false then
 			local proceed = ignoreVisChecks
@@ -783,6 +787,8 @@ function hgBlastDoors(blaster, pos, power, range, ignoreVisChecks) -- taken from
 		end
 	end
 end
+
+hgBlastDoors = hg.BlastDoors
 
 function DoorIsOpen2( door )
 	local doorClass = door:GetClass()
@@ -853,6 +859,8 @@ function hg.BlastDoor(ent, vel) -- taken from JMod
 		end)
 	end
 end
+
+hgBlastThatDoor = hg.BlastDoor
 
 function hg.CreateJeepSeats(ent)
 	local seatsDebug = false
