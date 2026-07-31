@@ -344,7 +344,7 @@ CalcView = function(ply, origin, angles, fov, znear, zfar)
 	--angles.roll = (turned and 180 or 0) + lean_lerp * 10
 
 	local vpang = GetViewPunchAngles2() + GetViewPunchAngles3()
-	vpang[3] = 0
+	-- vpang[3] = 0
 	
 	if not lply:Alive() and hg.DeathCam and hg.DeathCamAvailable(ply) then return hg.DeathCam(ply,origin,angles,fov,znear,zfar) end
 

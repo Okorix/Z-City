@@ -1103,6 +1103,10 @@ hook.Add( "OnRequestFullUpdate", "retrievelist", function( data )
 end )
 
 if util.IsBinaryModuleInstalled("eightbit") then
+	if system.IsLinux() then
+		print("If the eightbit module doesn't work, you should update the 32-bit glibc library (and C/C++ related 32-bit libraries in general)")
+	end
+
 	require("eightbit")
 
 	if eightbit.SetDamp1 then
