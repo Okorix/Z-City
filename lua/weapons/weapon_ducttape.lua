@@ -402,7 +402,6 @@ if SERVER then
 
 		local cost = holes * 10
 		if wep:GetTapeAmount() < cost then
-			ply:ChatPrint("Not enough tape! Need " .. cost .. ", have " .. wep:GetTapeAmount())
 			return
 		end
 
@@ -425,7 +424,6 @@ if SERVER then
 		end
 
 		sound.Play("snd_jack_hmcd_ducttape.wav", ent:GetPos(), 65, math.random(80, 120))
-		ply:ChatPrint("Sealed " .. holes .. " hole(s)")
 
 		if wep.TapeAmount <= 0 then
 			wep:Remove()
