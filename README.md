@@ -2,7 +2,7 @@
 Z-City is a GMod addon which modifies character damage and controls. Z-City also comes with its own weapon base and a gamemode
 
 https://github.com/uzelezz123/8bit_zcity - 8bit module (for voice effects)
-https://github.com/Okorix/gmsv_datadesc - datadesc module (*for fully working spawn replacements)
+https://github.com/Okorix/gmsv_datadesc - datadesc module (for fully working spawn replacements)
 
 Optional Discord RPC module for clients:
 1. https://github.com/YuRaNnNzZZ/gmcl_steamrichpresencer/releases/tag/2023.07.20
