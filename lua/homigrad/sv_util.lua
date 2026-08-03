@@ -1301,6 +1301,8 @@ hook.Add("OnEntityCreated", "ReplaceEnt", function(ent)
 				if not string.StartsWith(v:GetClass(), "phys_") then continue end
 
 				local kv = v:GetKeyValues()
+				if entName == "" then continue end
+
 				if kv.attach1 == entName or kv.attach2 == entName then
 					physCons[v] = {
 						kv = kv,
