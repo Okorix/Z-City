@@ -1843,15 +1843,19 @@ hook.Add("PlayerDeath", "HMCD_UpdateTraitorsList", function(ply)
 	end)
 end)
 
-local function SpecSHTF(ply,cmd,args)
+local function homicide_setmode(ply,cmd,args)
 	if IsValid(ply) and not ply:IsAdmin() then ply:ChatPrint("You don't have access") return end
 
 	if(args[1]=="1")then
 		NextRound("soe")
-		PrintMessage(HUD_PRINTTALK,"SHTF mode specified as true")
+		if IsValid(ply) then
+			ply:ChatPrint("Next round is homicide: state of emergency")
+		end
 	elseif(args[1]=="0")then
 		NextRound("standard")
-		PrintMessage(HUD_PRINTTALK,"SHTF mode specified as false")
+		if IsValid(ply) then
+			ply:ChatPrint("Next round is homicide: standard")
+		end
 	end
 end
-concommand.Add("homicide_setmode",SpecSHTF)
+concommand.Add("homicide_setmode", homicide_setmode)
