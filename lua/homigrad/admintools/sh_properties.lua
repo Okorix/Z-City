@@ -522,6 +522,34 @@ properties.Add( "weapon_menu", {
 	end
 } )
 
+properties.Add("activatephysicscanister", {
+	MenuLabel = "Activate",
+	Order = 11,
+	MenuIcon = "icon16/arrow_up.png",
+
+	Filter = function(self,ent,ply)
+		if not ply:ZCTools_GetAccess() then return false end 
+		if ( !IsValid( ent ) ) then return false end
+		local class = ent:GetClass()
+		local kv = ent.GetKeyValues and ent:GetKeyValues() or {}
+		if class == "physics_cannister" or kv["gassound"] then
+			return true
+		end
+		return false
+	end,
+	Action = function( self, ent )
+		self:MsgStart()
+			net.WriteEntity( ent )
+		self:MsgEnd()
+	end,
+	Receive = function( self, length, ply )
+		local ent = net.ReadEntity()
+
+		if ( !self:Filter( ent, ply ) ) then return end
+		ent:Fire("Activate")
+	end 
+})
+
 properties.Add("killsilent", {
 	MenuLabel = "Kill (Silent)",
 	Order = 11,
