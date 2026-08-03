@@ -1976,15 +1976,6 @@ hook.Add("Player Think", "homigrad-viewoffset", function(ply)
 	end
 end)
 
-if !istable(gmnetwork) and util.IsBinaryModuleInstalled("network") then
-	local success, err = pcall(require, "network")
-
-	if !success then
-		print("\n STUPID FURRY gmnetwork ERROR: "..err.."\n")
-	end
-end
-
-
 hook.Add("SetupMove", "AntiCrouchSpam", function(ply, mvd, cmd) -- на самом деле довольно безполезная херня просто нельзя спамить присядом лол
 	if !ply:Alive() or !hg.GetCurrentCharacter( ply ):IsPlayer() then return end
 

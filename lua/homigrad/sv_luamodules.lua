@@ -30,7 +30,10 @@ local luaModules = {
 			notinstalledfunc = function()
 				MsgC(Color(255, 0, 0), "Datadesc module is not found! Install it to keep replacements fully working.\n")
 			end
-		}
+		},
+        gmnetwork = {
+            name = "network",
+        }
 	}
 }
 
@@ -46,6 +49,8 @@ for i,v in pairs(luaModules.tbl) do
 			moduleStartFunction()
 		end
 	else
-		moduleNotInstalledFunction()
+		if moduleNotInstalledFunction ~= nil then
+            moduleNotInstalledFunction()
+        end
 	end
 end
