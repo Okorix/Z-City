@@ -1233,7 +1233,7 @@ local TrackedEntsHalfLife = {
 	["ent_hmcd_mansion_cuestick"]={"weapon_hg_spear"},
 }
 
-local TrackedModelsa = {
+local TrackedModels = {
 	["models/props_interiors/pot02a.mdl"] = "ent_armor_helmet4",
 	["models/props_c17/metalPot002a.mdl"] = "weapon_pan",
 	["models/props_junk/Shovel01a.mdl"] = "weapon_hg_shovel",
@@ -1253,9 +1253,7 @@ local TrackedModelsa = {
 	["models/props_canal/mattpipe.mdl"] = "weapon_leadpipe",
 }
 
-local TrackedModels = {}
-
-for str, ent in pairs(TrackedModelsa) do
+for str, ent in pairs(TrackedModels) do
 	TrackedModels[string.lower(str)] = ent
 end
 
@@ -1272,165 +1270,190 @@ hook.Add("PreCleanupMap","ReplaceEntCD",function()
 	fuckingwait = CurTime() + 5
 end)
 
-hook.Add( "OnEntityCreated", "ReplaceEnt", function( ent )
+local mapExceptions = {
+    ["ttt_clue_2022"] = {
+        "models/props_canal/mattpipe.mdl",
+    },
+}
+ 
+local function isMapException(map, model)
+    local models = mapExceptions[map]
+    if not models then return false end
+ 
+    for _, exceptionModel in ipairs(models) do
+        if exceptionModel == model then return true end
+    end
+ 
+    return false
+end
+
+hook.Add("OnEntityCreated", "ReplaceEnt", function(ent)
     hook.Run("ZB_OnEntCreated", ent)
     if OverrideWeaponSpawn then return end
 
-    local entsTable = ents.GetAll()
+	if not IsValid(ent) then return end
+	
+	timer.Simple(5, function()
+		if not IsValid(ent) then return end
 
-    timer.Simple(fuckingwait > CurTime() and 5 or 0, function()
-        if ( not IsValid(ent) or (not TrackedEnts[ ent:GetClass() ] and not TrackedEntsHalfLife[ ent:GetClass() ] and not TrackedModels[ent:GetModel()]) ) then return end
+		local isTrackedClass = TrackedEnts[ent:GetClass()] or TrackedEntsHalfLife[ent:GetClass()]
+		local isTrackedModel = TrackedModels[ent:GetModel()]
+		if not isTrackedClass and not isTrackedModel then return end
+		
+		local function doReplace()
+			local entclass = ent:GetClass()
+			local model = string.lower(ent:GetModel())
+			
+			if TrackedModels[model] then
+				local isProp = string.find(entclass, "prop_") ~= nil
+				local mapException = isMapException(game.GetMap(), model)
+				if isProp and mapException and not ent.notprop then
+					return
+				end
+			end
 
-        local function doReplace()
-            if TrackedModels[string.lower(ent:GetModel())] and not (string.find(ent:GetClass(),"prop_") and not (game.GetMap() == "ttt_clue_2022" and string.lower(ent:GetModel()) == "models/props_canal/mattpipe.mdl") and not ent.notprop) then
-                return
-            end
 
-            local entclass = ent:GetClass()
-            local replacementEnt = (CurrentRound and CurrentRound().name == "coop" and TrackedEntsHalfLife[ entclass ] or TrackedEnts[ entclass ]) or TrackedModels[string.lower(ent:GetModel())]
+			local replacementEnt = (CurrentRound and CurrentRound().name == "coop" and TrackedEntsHalfLife[entclass])
+				or TrackedEnts[entclass]
+				or TrackedModels[model]
 
-            if istable(replacementEnt) then replacementEnt = table.Random(replacementEnt) end
+			if istable(replacementEnt) then
+				replacementEnt = table.Random(replacementEnt)
+			end
 
-            if replacementEnt == "*ammo*" then
-                replacementEnt = "ent_ammo_" .. table.Random(hg.ammotypeshuy).name
-            end
+			if replacementEnt == "*ammo*" then
+				replacementEnt = "ent_ammo_" .. table.Random(hg.ammotypeshuy).name
+			end
 
-            if replacementEnt == entclass then return end
-            if not replacementEnt or replacementEnt == "" then return end
-            if not IsValid(ent) then return end
+			if not replacementEnt or replacementEnt == "" or replacementEnt == entclass then return end
+			if not IsValid(ent) then return end
 
 			if datadesc and datadesc.HasConnections(ent) then
 				return
 			end
 
-            OverrideWeaponSpawn = true
-            local owner = ent.GetOwner and ent:GetOwner()
-            local entPos = ent:GetPos()
-            local entAngles = ent:GetAngles()
-            local phys = ent:GetPhysicsObject()
-            local vel = ent:GetVelocity()
+			OverrideWeaponSpawn = true
 
-            if IsValid(phys) then
-                vel = phys:GetVelocity()
-            end
+			local owner = ent.GetOwner and ent:GetOwner()
+			local entPos = ent:GetPos()
+			local entAngles = ent:GetAngles()
+			local oldPhys = ent:GetPhysicsObject()
+			local vel = ent:GetVelocity()
+			oldPhys:EnableMotion(false)
 
+			if IsValid(oldPhys) then
+				vel = oldPhys:GetVelocity()
+			end
+			
 			local physCons = {}
+			local entName = ent:GetName()
 
-			for k, v in pairs(entsTable) do
+			for _, v in pairs(ents.GetAll()) do
 				if not IsValid(v) then continue end
 				if not string.StartsWith(v:GetClass(), "phys_") then continue end
 
 				local kv = v:GetKeyValues()
-
-				if kv.attach1 == ent:GetName() or kv.attach2 == ent:GetName() then
+				if kv.attach1 == entName or kv.attach2 == entName then
 					physCons[v] = {
 						kv = kv,
 						attach1 = kv.attach1,
-						attach2 = kv.attach2
+						attach2 = kv.attach2,
 					}
 				end
 			end
 
-            SafeRemoveEntity(ent)
+			SafeRemoveEntity(ent)
 
-            if owner and owner:IsNPC() and ent:GetClass() ~= "npc_grenade_frag" then
-                local replacementEntNpc = TrackedEntsNpc[ entclass ][math.random( #TrackedEntsNpc[ entclass ] )]
-                local cap = owner:CapabilitiesGet()
-                if bit.band(cap, CAP_USE_WEAPONS) != CAP_USE_WEAPONS then OverrideWeaponSpawn = false return end
-                owner:Give(replacementEntNpc)
-                OverrideWeaponSpawn = false
-                return
-            end
+			if owner and owner:IsNPC() and entclass ~= "npc_grenade_frag" then
+				local npcReplacements = TrackedEntsNpc[entclass]
+				if not npcReplacements or #npcReplacements == 0 then
+					OverrideWeaponSpawn = false
+					return
+				end
 
-            local Replacement = ents.Create(replacementEnt)
+				local cap = owner:CapabilitiesGet()
+				if bit.band(cap, CAP_USE_WEAPONS) != CAP_USE_WEAPONS then
+					OverrideWeaponSpawn = false
+					return
+				end
 
-            if not IsValid(Replacement) then
-                OverrideWeaponSpawn = false
-                return
-            end
+				owner:Give(npcReplacements[math.random(#npcReplacements)])
+				OverrideWeaponSpawn = false
+				return
+			end
+
+			local Replacement = ents.Create(replacementEnt)
+			if not IsValid(Replacement) then
+				OverrideWeaponSpawn = false
+				return
+			end
 
 			Replacement.dontAddPos = true
-            Replacement:SetPos(entPos)
-            Replacement:SetAngles(entAngles)
-            Replacement.IsSpawned = true
-            Replacement.init = true
-            Replacement:Spawn()
-			local phys = Replacement:GetPhysicsObject()
-			phys:EnableMotion(false)
+			Replacement:SetPos(entPos)
+			Replacement:SetAngles(entAngles)
+			Replacement.IsSpawned = true
+			Replacement.init = true
+			Replacement:Spawn()
 
-			for oldPhys, data in pairs(physCons) do
+			local newPhys = Replacement:GetPhysicsObject()
+			if IsValid(newPhys) then
+				newPhys:EnableMotion(false)
+			end
+
+			for consEnt, data in pairs(physCons) do
 				local kv = data.kv
 
-				local ent1
-				local ent2
+				local ent1 = (data.attach1 == entName) and Replacement or ents.FindByName(data.attach1)[1]
+				local ent2 = (data.attach2 == entName) and Replacement or ents.FindByName(data.attach2)[1]
 
-				if data.attach1 == ent:GetName() then
-					ent1 = Replacement
-				else
-					ent1 = ents.FindByName(data.attach1)[1]
+				local phys1 = IsValid(ent1) and ent1:GetPhysicsObject() or Entity(0):GetPhysicsObject()
+				local phys2 = IsValid(ent2) and ent2:GetPhysicsObject() or Entity(0):GetPhysicsObject()
+
+				local newCons = ents.Create(consEnt:GetClass())
+				newCons:SetPos(consEnt:GetPos())
+				newCons:Spawn()
+				newCons:Activate()
+				newCons:SetPhysConstraintObjects(phys1, phys2)
+
+				for kvName, kvValue in pairs(kv) do
+					newCons:SetKeyValue(kvName, tostring(kvValue))
 				end
 
-				if data.attach2 == ent:GetName() then
-					ent2 = Replacement
-				else
-					ent2 = ents.FindByName(data.attach2)[1]
-				end
-
-				local phys1 = IsValid(ent1)
-					and ent1:GetPhysicsObject()
-					or Entity(0):GetPhysicsObject()
-
-				local phys2 = IsValid(ent2)
-					and ent2:GetPhysicsObject()
-					or Entity(0):GetPhysicsObject()
-
-				local newPhys = ents.Create(oldPhys:GetClass())
-				newPhys:SetPos(oldPhys:GetPos())
-				
-				newPhys:Spawn()
-				newPhys:Activate()
-				newPhys:SetPhysConstraintObjects(phys1, phys2)
-
-				for kv_name, kv_value in pairs(kv) do
-					newPhys:SetKeyValue(kv_name, tostring(kv_value))
-				end
-				
-				if IsValid(oldPhys) then
-					oldPhys:Fire("TurnOff")
-					oldPhys:Fire("Break")
+				if IsValid(consEnt) then
+					consEnt:Fire("TurnOff")
+					consEnt:Fire("Break")
 				end
 			end
 
-            if owner then
-                Replacement.owner = owner
-            end
+			if owner then
+				Replacement.owner = owner
+			end
 
-            if IsValid(phys) then
-                phys:SetVelocity(vel)
-            end
+			if IsValid(newPhys) then
+				newPhys:SetVelocity(vel)
+			end
 
-			timer.Simple(2,function()
-				phys:EnableMotion(true)
+			timer.Simple(2, function()
+				if IsValid(newPhys) then
+					newPhys:EnableMotion(true)
+				end
 			end)
 
-            if ent:GetClass() == "npc_grenade_frag" then
-                Replacement.timer = CurTime()
-            end
+			if entclass == "npc_grenade_frag" then
+				Replacement.timer = CurTime()
+			end
 
-            OverrideWeaponSpawn = false
-        end
+			OverrideWeaponSpawn = false
+		end
 
-		local conTable = constraint.GetTable(ent)
-		if conTable and #conTable > 0 then return end
-		
 		timer.Simple(0.1, function()
 			if not IsValid(ent) then return end
 			local conTable2 = constraint.GetTable(ent)
 			if conTable2 and #conTable2 > 0 then return end
 			doReplace()
 		end)
-    end)
-end )
+	end)
+end)
 
 -- https://www.youtube.com/watch?v=HvtIwUgJgjA
 --\\ Kick on death
