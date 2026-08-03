@@ -2056,7 +2056,8 @@ local function setupCanister(ent)
 
     local pos = ent:GetPos()
     local ang = ent:GetAngles()
-    ent:Remove()
+    SafeRemoveEntityDelayed(ent, 0.1)
+	print(ent)
 
     local canister = ents.Create("physics_cannister")
     if not IsValid(canister) then return end
@@ -2087,7 +2088,9 @@ end
 local function replaceCanisters()
     for model, _ in pairs(propaneCanisterModels) do
         for _, ent in pairs(ents.FindByModel(model)) do
-            setupCanister(ent)
+            timer.Simple(1, function()
+				setupCanister(ent)
+			end)
         end
     end
 end
