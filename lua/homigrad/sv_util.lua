@@ -1235,6 +1235,12 @@ local function isMapException(map, model)
     return false
 end
 
+local kvExceptions = {
+	["attach1"] = true,
+	["attach2"] = true,
+	["hammerid"] = true
+}
+
 hook.Add("OnEntityCreated", "ReplaceEnt", function(ent)
     hook.Run("ZB_OnEntCreated", ent)
     if OverrideWeaponSpawn then return end
@@ -1361,14 +1367,14 @@ hook.Add("OnEntityCreated", "ReplaceEnt", function(ent)
 
 				local newCons = ents.Create(consEnt:GetClass())
 				newCons:SetPos(consEnt:GetPos())
+				for kvName, kvValue in pairs(data.kv) do
+					if not kvExceptions[kvName] then
+						newCons:SetKeyValue(kvName, tostring(kvValue))
+					end
+				end
+				newCons:SetPhysConstraintObjects(phys1, phys2)
 				newCons:Spawn()
 				newCons:Activate()
-				newCons:SetPhysConstraintObjects(phys1, phys2)
-
-				for kvName, kvValue in pairs(kv) do
-					newCons:SetKeyValue(kvName, tostring(kvValue))
-				end
-
 				if IsValid(consEnt) then
 					consEnt:Fire("TurnOff")
 					consEnt:Fire("Break")
