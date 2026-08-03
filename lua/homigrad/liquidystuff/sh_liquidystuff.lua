@@ -191,6 +191,10 @@ if SERVER then
 			return
 		end
 
+		if drum.Volume <= 0 then
+			return
+		end
+
 		local pos = ent:GetPos()
 		local maxs, mins, center = ent:OBBMaxs(), ent:OBBMins(), ent:OBBCenter()
 		
@@ -271,8 +275,6 @@ if SERVER then
 			end
 
 			ent:SetNWBool("EmptyBarrel", true)
-
-			hg.drums[i] = nil
 		end
 	end)
 

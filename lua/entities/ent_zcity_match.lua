@@ -61,6 +61,7 @@ function ENT:Initialize()
             end
             if IsValid(data.HitEntity) and hg.drums[data.HitEntity:EntIndex()] then
                 local drum = hg.drums[data.HitEntity:EntIndex()]
+                if drum.Volume <= 0 then return end
                 local drumEnt = data.HitEntity
                 local tbl = hg.expItems[drumEnt:GetModel()]
                 for i, point in ipairs(drum.high_point) do
