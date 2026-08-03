@@ -1519,6 +1519,11 @@ local IsValid = IsValid
 		if not IsValid(ent) then
 			ent = heldent
 		end
+		
+		local ground = ply:GetGroundEntity()
+		if IsValid(ent) and IsValid(ground) and ent == ground then
+			ent = IsValid(heldent) and heldent or nil
+		end
 
 		hook_Run("HG_FindUseEntity", ply, ent, tr)
 
