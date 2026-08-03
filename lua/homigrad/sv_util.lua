@@ -1213,9 +1213,9 @@ TrackedEntsNpc["weapon_stunstick"] = {"weapon_hg_stunstick"}
 TrackedEntsNpc["weapon_shotgun"] = {"weapon_spas12"}
 TrackedEntsNpc["npc_grenade_frag"] = {"ent_hg_grenade_hl2grenade"}
 
-local fuckingwait = 0
+local ReplaceEntCD = 0
 hook.Add("PreCleanupMap","ReplaceEntCD",function()
-	fuckingwait = CurTime() + 5
+	ReplaceEntCD = CurTime() + 5
 end)
 
 local mapExceptions = {
@@ -1241,7 +1241,7 @@ hook.Add("OnEntityCreated", "ReplaceEnt", function(ent)
 
 	if not IsValid(ent) then return end
 	
-	timer.Simple(5, function()
+	timer.Simple(ReplaceEntCD > CurTime() and 5 or 0, function()
 		if not IsValid(ent) then return end
 
 		local isTrackedClass = TrackedEnts[ent:GetClass()] or TrackedEntsHalfLife[ent:GetClass()]
