@@ -2056,6 +2056,9 @@ hook.Add("PlayerSpawn", "sandboxloadout", function(player, transition)
 	end
 end)
 
+hook.Add( "PostCleanupMap", "MapReadyHook", function() hook.Run("MapReady") end)
+hook.Add("InitPostEntity", "MapReadyHook", function() hook.Run("MapReady") end)
+
 local mansionItemsReplacementTbl = {
 	["hmcd_cuess"] = "wep_hmcd_mansion_cuestick",
 	["hmcd_pokers"] = "wep_hmcd_mansion_poker",
@@ -2089,5 +2092,62 @@ local function replaceMansionItems()
 	end
 end
 
-hook.Add( "PostCleanupMap", "replaceMansionItems", replaceMansionItems)
-hook.Add("InitPostEntity", "replaceMansionItems", replaceMansionItems)
+hook.Add("MapReady", "replaceMansionItems", replaceMansionItems)
+
+local propaneCanisterModels = {
+	["models/props_c17/canister01a.mdl"] = true,
+    ["models/props_c17/canister02a.mdl"] = true,
+    ["models/props_c17/canister_propane01a.mdl"] = true
+}
+
+local function setupCanister(ent)
+    if not IsValid(ent) then return end
+
+    local model = ent:GetModel()
+    if not propaneCanisterModels[model] then return end
+    if ent:GetClass() == "physics_cannister" then return end
+
+    local pos = ent:GetPos()
+    local ang = ent:GetAngles()
+    ent:Remove()
+
+    local canister = ents.Create("physics_cannister")
+    if not IsValid(canister) then return end
+
+
+    canister:SetModel(model)
+    canister:SetPos(pos)
+    canister:SetAngles(ang)
+    canister:SetKeyValue("gassound", "ambient/gas/cannister_loop.wav")
+	canister:SetKeyValue("renderamt", "255")
+	canister:SetKeyValue("rendercolor", "255 255 255")
+
+    canister:Spawn()
+
+    local physObj = canister:GetPhysicsObject()
+    if IsValid(physObj) then
+        local mass = math.floor(physObj:GetMass())
+        local thrust = math.floor(mass * 23)
+        local fuel = math.floor(mass * 0.5)
+        local health = math.floor(mass * 2.5)
+
+        canister:SetKeyValue("health", tostring(health))
+        canister:SetKeyValue("thrust", tostring(thrust))
+        canister:SetKeyValue("fuel", tostring(fuel))
+    end
+end
+
+local function replaceCanisters()
+    for model, _ in pairs(propaneCanisterModels) do
+        for _, ent in pairs(ents.FindByModel(model)) do
+            setupCanister(ent)
+        end
+    end
+end
+
+hook.Add("MapReady", "replaceCanisters", replaceCanisters)
+hook.Add("OnEntityCreated", "replaceCanisters", function(ent)
+	timer.Simple(0, function()
+		setupCanister(ent)
+	end)
+end)
