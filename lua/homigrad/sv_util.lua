@@ -1282,7 +1282,7 @@ hook.Add("OnEntityCreated", "ReplaceEnt", function(ent)
 			if not replacementEnt or replacementEnt == "" or replacementEnt == entclass then return end
 			if not IsValid(ent) then return end
 
-			if datadesc and datadesc.HasConnections(ent) then
+			if entityio and entityio.HasConnections(ent) then
 				return
 			end
 

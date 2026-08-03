@@ -25,10 +25,10 @@ local luaModules = {
 				MsgC(Color(255, 0, 0), "Eightbit module is not found! Install it to keep voice effects.\n")
 			end
 		},
-		datadesc = {
-			name = "datadesc",
+		entityio = {
+			name = "entityio",
 			notinstalledfunc = function()
-				MsgC(Color(255, 0, 0), "Datadesc module is not found! Install it to keep replacements fully working.\n")
+				MsgC(Color(255, 0, 0), "entityio module is not found! Install it to keep replacements fully working.\n")
 			end
 		},
         gmnetwork = {
