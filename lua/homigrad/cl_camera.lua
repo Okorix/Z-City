@@ -517,8 +517,8 @@ CalcView = function(ply, origin, angles, fov, znear, zfar)
 	if GetCoolCameraBool() then
 		view.angles = realangle + GetViewPunchAngles() * 0.4 + vpang
 		view.angles[3] = view.angles[3] - GetViewPunchAngles4()[3]
-		angles = view.angles
 	end
+	angles = view.angles
 
 	view.angles:RotateAroundAxis(view.angles:Up(),-LookX)
 	view.angles:RotateAroundAxis(view.angles:Right(),-LookY)
