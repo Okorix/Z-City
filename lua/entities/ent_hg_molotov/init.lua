@@ -35,6 +35,7 @@ end
 
 function ENT:Use(ply)
 	if self:IsPlayerHolding() then return end
+	if not hook.Run("AllowPlayerPickup", ply, self) then return end
 
 	ply:PickupObject(self)
 end

@@ -67,7 +67,9 @@ function ENT:Think()
 end
 
 function ENT:Use(ply)
+	if not hook.Run("AllowPlayerPickup", ply, self) then return end
 	local wep = ply:GetActiveWeapon()
+
 	ply:PickupObject(self)
 end
 

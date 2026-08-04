@@ -80,6 +80,7 @@ end
 
 function ENT:Use(ply)
 	if (self.UseCD or 0) > CurTime() then return end
+	if not hook.Run("AllowPlayerPickup", ply, self) then return end
 
 	if self:IsPlayerHolding() then
 		ply:DropObject(self)
