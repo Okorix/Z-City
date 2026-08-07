@@ -345,13 +345,13 @@ local canisterModels = {
 	["models/props_c17/canister01a.mdl"] = true,
     ["models/props_c17/canister02a.mdl"] = true,
     ["models/props_c17/canister_propane01a.mdl"] = true,
-	["models/props_junk/PropaneCanister001a.mdl"] = true
+	["models/props_junk/propanecanister001a.mdl"] = true
 }
 
 local function setupCanister(ent)
     if not IsValid(ent) then return end
 
-    local model = ent:GetModel()
+    local model = string.lower(ent:GetModel() or "")
     if not canisterModels[model] then return end
     if ent:GetClass() == "physics_cannister" then return end
 

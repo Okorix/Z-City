@@ -1280,7 +1280,6 @@ hook.Add("SetupMove", "AntiCrouchSpam", function(ply, mvd, cmd) -- на само
 end)
 
 hook.Add("PlayerSpawn", "sandboxloadout", function(player, transition)
-	print(123)
 	if engine.ActiveGamemode() == "sandbox" then
 		player:Give("weapon_physgun")
 		player:Give("gmod_tool")
