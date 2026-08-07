@@ -326,39 +326,6 @@ hook.Add("OnEntityCreated", "PropMassFix", function(v)
 	end)
 end )
 
--- Looking Away 
-local MaxLookX,MinLookX = 55,-55
-local MaxLookY,MinLookY = 45,-45
-
-util.AddNetworkString("LookAway")
-net.Receive("LookAway",function(len,ply)
-	if len > 64 or !IsValid(ply) then return end
-	if !ply:Alive() then return end
-	if (ply.cooldown_lookaway or 0) > CurTime() then return end
-	ply.cooldown_lookaway = CurTime() + 0.1
-
-	local rf = RecipientFilter()
-	rf:AddPVS(ply:GetPos())
-	rf:RemovePlayer(ply)
-
-	local MaxLookX,MinLookX = hg.MaxLookX or MaxLookX, hg.MinLookX or MinLookX
-	local MaxLookY,MinLookY = hg.MaxLookY or MaxLookY, hg.MinLookY or MinLookY
-
-	local LookX = net.ReadFloat()
-	local LookY = net.ReadFloat()
-
-	-- THE MOST TERIBLE EXPLOIT EVER!!!!!!
-	if ( LookX > MaxLookX or LookX < MinLookX ) or ( LookY > MaxLookY or LookY < MinLookY ) then
-		hg.BreakNeck(ply)
-	end
-
-	net.Start("LookAway", true)
-		net.WriteEntity(ply)
-		net.WriteFloat(LookX)
-		net.WriteFloat(LookY)
-	net.Send(rf)
-end)
-
 hg = hg or {}
 -- С помощью этой функции можно пугать неписей.. Либо наоборот приманивать туда куда надо, мгс5 режим можно устроить
 function hg.EmitAISound(pos, vol, dur, typ) -- https://developer.valvesoftware.com/wiki/Ai_sound
@@ -1031,9 +998,9 @@ hook.Add( "OnEntityCreated", "VechicleChairs", function( ent )
 	-- 	end
 	-- end)
 	
-	-- if ent:GetClass() == "prop_vehicle_airboat" then
-	-- 	hg.CreateAirboatSeats(ent)
-	-- end
+	if ent:GetClass() == "prop_vehicle_airboat" then
+		hg.CreateAirboatSeats(ent)
+	end
 end )
 
 local replace_ammo = {
@@ -1091,7 +1058,6 @@ hook.Add( "Move", "hg_RagdollIntoWalls", function( ply, mv)
 	end
 end)
 
-
 util.AddNetworkString("retreivelist")
 
 gameevent.Listen( "OnRequestFullUpdate" )
@@ -1107,34 +1073,6 @@ hook.Add("InitPostEntity", "ffuckk", function()
 	perf.MaxVelocity = 100000 -- default 2000
 	physenv.SetPerformanceSettings(perf)
 end)
-
--- https://www.youtube.com/watch?v=HvtIwUgJgjA
---\\ Kick on death
-	local reasons = {
-		"Goodbye.",
-		"Better luck next time.",
-		"Error",
-		"Something wrong"
-	}
-
-	local plymeta = FindMetaTable("Player")
-
-	local flags = bit.bor(FCVAR_REPLICATED, FCVAR_NOTIFY, FCVAR_SERVER_CAN_EXECUTE, FCVAR_NEVER_AS_STRING)
-	local hg_sync = CreateConVar("hg_sync", 0, flags, "Toggle death synchronized (kick player on death)", 0, 1)
-
-	function plymeta:SyncDeath()
-		local SyncLastMessage = table.Random(reasons)
-		if !self:IsSuperAdmin() then
-			self:Kick(SyncLastMessage)
-		end
-	end
-
-	hook.Add("PlayerDeath","I_Feel_Death",function(ply)
-		if hg_sync:GetBool() then
-			ply:SyncDeath()
-		end
-	end)
---//
 
 oldGetUseEntity = oldGetUseEntity or plymeta.GetUseEntity
 
@@ -1183,186 +1121,6 @@ end
 	end)
 --//
 
-local entMeta = FindMetaTable( "Entity" )
-
-function entMeta:StealthOpenDoor(user)
-	self.oldspeed = self.oldspeed or self:GetInternalVariable("Speed")
-	self.oldsnd = self.oldsnd or self:GetInternalVariable("noise1")
-	self.oldsnd2 = self.oldsnd2 or self:GetInternalVariable("noise2")
-	self.oldsnd3 = self.oldsnd3 or self:GetInternalVariable("soundcloseoverride")
-	self.oldsnd4 = self.oldsnd4 or self:GetInternalVariable("soundlockedoverride")
-	self.oldsnd5 = self.oldsnd5 or self:GetInternalVariable("soundmoveoverride")
-	self.oldsnd6 = self.oldsnd6 or self:GetInternalVariable("soundopenoverride")
-	self.oldsnd7 = self.oldsnd7 or self:GetInternalVariable("soundunlockedoverride")
-	
-	self.firstOpen = 0--((self.firstOpen or -1) + 1)
-	--print(self.firstOpen)
-	local amt = 1 - math.min(math.abs(user:EyeAngles().p) / 60, 1)
-	
-	--local dist = self:GetInternalVariable("distance")
-	--self.distar = dist
-	
-	--[[if self.firstOpen and dist == 90 then
-		self:SetSaveValue( "distance", 10 )
-	else
-		self:SetSaveValue( "distance", self.distar )
-	end--]]
-	
-	--["m_angRotationOpenBack"]	   =	   0.000000 90.000000 0.000000
-	--["m_angRotationOpenForward"]	=	   0.000000 -90.000000 0.000000
-	
-	--["m_vecAngle1"] =	   0.000000 0.000000 0.000000
-	--["m_vecAngle2"] =	   0.000000 -90.000000 0.000000
-
-	self.openang = self.openang or self:GetInternalVariable("m_angRotationOpenBack")
-	self.openang2 = self.openang2 or self:GetInternalVariable("m_angRotationOpenForward")
-	self.openang3 = self.openang3 or self:GetInternalVariable("m_vecAngle1")
-	self.openang4 = self.openang4 or self:GetInternalVariable("m_vecAngle2")
-	
-	if self.openang then
-		self:SetSaveValue("m_angRotationOpenBack", (self.firstOpen == 0) and self.openang * amt or self.openang)
-		self:SetSaveValue("m_angRotationOpenForward", (self.firstOpen == 0) and self.openang2 * amt or self.openang2)
-	end
-
-	if self.openang3 then
-		self:SetSaveValue("m_vecAngle1", (self.firstOpen == 0) and self.openang3 * amt or self.openang3)
-		self:SetSaveValue("m_vecAngle2", (self.firstOpen == 0) and self.openang4 * amt or self.openang4)
-	end
-
-	--self:SetSaveValue( "distance", 10 )
-
-	self:SetSaveValue("Speed", self.oldspeed / 2)
-	self:SetSaveValue("noise1", "")
-	self:SetSaveValue("noise2", "")
-	self:SetSaveValue("soundcloseoverride", "")
-	self:SetSaveValue("soundlockedoverride", "")
-	self:SetSaveValue("soundmoveoverride", "")
-	self:SetSaveValue("soundopenoverride", "")
-	self:SetSaveValue("soundunlockedoverride", "")
-
-	hg.RunZManipAnim(user, !DoorIsOpen2(self) and "door_open_forward" or "door_open_back", nil, 2, {self})
-end
-
-hook.Add("StartCommand", "kolesiko", function(ply, cmd)
-	local whl = cmd:GetMouseWheel()
-	if ply:KeyDown(IN_WALK) and math.abs(whl) > 0 then
-		local old_amt = ply:GetNWInt("door_open_amt", 0)
-
-		ply:SetNWInt("door_open_amt", math.Clamp(old_amt + whl, -90, 90))
-	end
-end)
-
-function entMeta:NormalOpenDoor(user)
-	if self.oldspeed then
-		self:SetSaveValue( "Speed", self.oldspeed )
-	end
-	
-	self.firstOpen = -1
-
-	if self.openang then
-		self:SetSaveValue( "m_angRotationOpenBack", self.openang )
-		self:SetSaveValue( "m_angRotationOpenForward", self.openang2 )
-	end
-
-	if self.openang3 then
-		self:SetSaveValue( "m_vecAngle1",self.openang3 )
-		self:SetSaveValue( "m_vecAngle2", self.openang4 )
-	end
-
-	if self.oldsnd or self.oldsnd3 then
-		self:SetSaveValue( "noise1", self.oldsnd )
-		self:SetSaveValue( "noise2", self.oldsnd2 )
-		self:SetSaveValue( "soundcloseoverride", self.oldsnd3 )
-		self:SetSaveValue( "soundlockedoverride", self.oldsnd4 )
-		self:SetSaveValue( "soundmoveoverride", self.oldsnd5 )
-		self:SetSaveValue( "soundopenoverride", self.oldsnd6 )
-		self:SetSaveValue( "soundunlockedoverride", self.oldsnd7 )
-	end
-
-	hg.RunZManipAnim(user, !DoorIsOpen2(self) and "door_open_forward" or "door_open_back", nil, nil, {self})
-end
-
-local vpang = Angle(2,0,0)
-function entMeta:FastOpenDoor(user, mul, noanim)
-	self.oldspeed = self.oldspeed or self:GetInternalVariable( "Speed" )
-
-	self.firstOpen = -1
-
-	if self.openang then
-		self:SetSaveValue( "m_angRotationOpenBack", self.openang )
-		self:SetSaveValue( "m_angRotationOpenForward", self.openang2 )
-	end
-
-	if self.openang3 then
-		self:SetSaveValue( "m_vecAngle1",self.openang3 )
-		self:SetSaveValue( "m_vecAngle2", self.openang4 )
-	end
-
-	if self.oldsnd or self.oldsnd3 then
-		self:SetSaveValue( "noise1", self.oldsnd )
-		self:SetSaveValue( "noise2", self.oldsnd2 )
-		self:SetSaveValue( "soundcloseoverride", self.oldsnd3 )
-		self:SetSaveValue( "soundlockedoverride", self.oldsnd4 )
-		self:SetSaveValue( "soundmoveoverride", self.oldsnd5 )
-		self:SetSaveValue( "soundopenoverride", self.oldsnd6 )
-		self:SetSaveValue( "soundunlockedoverride", self.oldsnd7 )
-	end
-
-	self:SetSaveValue( "Speed", self.oldspeed * math.min(math.max(user:GetVelocity():Length() / 50, 1.5), 3) * (mul or 1) )
-	user:ViewPunch(vpang)
-	if !noanim then
-		hg.RunZManipAnim(user, !DoorIsOpen2(self) and "door_open_forward" or "door_open_back", nil, nil, {self})
-	end
-	if user.organism then
-		user.organism.stamina.subadd = user.organism.stamina.subadd + 5
-	end
-	if user:GetVelocity():Length() < 50 then
-		user:SetVelocity(user:GetVelocity() + user:GetAimVector()*100)
-	end
-end
-
-function entMeta:SDOIsDoor()
-	return self:GetClass() == "prop_door_rotating" or self:GetClass() == "func_door_rotating"
-end
-
-hook.Add( "AcceptInput", "StealthOpenDoors", function( ent, inp, act, ply, val )
-	if inp == "Use" and ent:SDOIsDoor() then
-		local func = ((ply:KeyDown( IN_SPEED ) and "FastOpenDoor") or ( ply:KeyDown( IN_WALK ) and "StealthOpenDoor") or "NormalOpenDoor")
-		ent[func](ent,ply)
-		if ent:GetInternalVariable( "slavename" ) then
-			for k,v in pairs( ents.FindByName( ent:GetInternalVariable( "slavename" ) ) ) do
-				v[func](v,ply)
-			end
-		end
-
-		for k,v in pairs( ents.FindByClass( ent:GetClass() ) ) do
-			if ent == v:GetInternalVariable( "m_hMaster" ) then
-				v[func](v,ply)
-			end
-		end
-		if ent:GetInternalVariable( "m_hMaster" ) and IsValid( ent:GetInternalVariable( "m_hMaster" ) ) and ent:GetInternalVariable( "m_hMaster" ):SDOIsDoor() then
-			ent:GetInternalVariable( "m_hMaster" )[func](ent:GetInternalVariable( "m_hMaster" ),ply)
-		end
-	end
-end )
-
-hook.Add("PlayerUse", "DoorClose", function(ply, ent)
-	local getdoor = ply:GetUseEntity()
-	if string_find(tostring(getdoor), "prop_door_rotating") and getdoor:GetInternalVariable("m_eDoorState") == 2 then
-		if getdoor:GetInternalVariable("m_hMaster") != NULL then
-			getdoor:GetInternalVariable("m_hMaster"):Fire("close")
-			hg.RunZManipAnim(ply, "door_open_back", nil, 2, {self})
-
-			return false
-		else
-			getdoor:Fire("close")
-			hg.RunZManipAnim(ply, "door_open_back", nil, 2, {self})
-
-			return false
-		end
-	end	
-end)
-
 hook.Add( "KeyPress", "snowballs_pickup", function( ply, key )
 	if IsValid(ply.FakeRagdoll) then return end
 	ply.SnowBallPickupCD = ply.SnowBallPickupCD or 0
@@ -1377,168 +1135,6 @@ hook.Add( "KeyPress", "snowballs_pickup", function( ply, key )
 		end
 	end
 end )
-
-local warmingEnts = {
-	["env_sprite"] = 0.0,
-	["env_fire"] = 0.5,
-	["vfire"] = function(ent) return ent:GetFireState() end,
-}
-
-hg.MapTemps = {
-	["gm_wintertown"] = -10,
-	["cs_drugbust_winter"] = -10,
-	["cs_office"] = -10,
-	["gm_zabroshka_winter"] = -23,
-	["mu_smallotown_v2_snow"] = -12,
-	["ttt_cosy_winter"] = -16,
-	["ttt_winterplant_v4"] = -16,
-	["gm_everpine_mall"] = -10,
-	["gm_boreas"] = -40,
-	["gm_reservoir_a1"] = -10,
-	["mu_riverside_snow"] = -10,
-	["gm_fork_north"] = -16,
-	["gm_fork_north_day"] = -21,
-	["gm_ijm_boreas"] = -40,
-	["gm_construct"] = 20 -- тест температуры
-}
-
-function hg.TranslateToBodyTemp(temp, org)
-	return math.Remap(temp, -20, 20, 27, org and org.needed_temp or 36.7) -- math.Remap doesn't clamp
-end
-
-local hg_temperaturesystem = CreateConVar("hg_temperaturesystem", 1, FCVAR_ARCHIVE + FCVAR_REPLICATED + FCVAR_NOTIFY, "Toggle temperature system", 0, 1)
-local sf2_get_temp = StormFox2 and StormFox2.Temperature and StormFox2.Temperature.Get or nil
-
-hook.Add("StormFox2.PostEntityScan","load-stormfox-support",function()
-	sf2_get_temp = StormFox2 and StormFox2.Temperature and StormFox2.Temperature.Get or nil
-end)
-
-hook.Add("Org Think", "BodyTemperature", function(owner, org, timeValue) -- переделал систему температуры
-	if not owner:IsPlayer() or not owner:Alive() then return end
-	if owner.GetPlayerClass and owner:GetPlayerClass() and owner:GetPlayerClass().NoFreeze then return end
-	if !hg_temperaturesystem:GetBool() then return end
-	if (owner.CheckTemp or 0) > CurTime() then return end
-	owner.CheckTemp = CurTime() + 0.5--optimization update
-
-	local timeValue = 0.5
-	local ent = hg.GetCurrentCharacter(owner)
-
-	local IsVisibleSkyBox = util.TraceLine( {
-		start = ent:GetPos() + vector_up * 15,
-		endpos = ent:GetPos() + vector_up * 999999,
-		mask = MASK_SOLID_BRUSHONLY
-	} ).HitSky and !owner:InVehicle()
-
-	org.temperature = org.temperature or 36.7
-
-	local currentPulse = org.pulse or 70
-	local pulseHeat = 0
-	local temp = sf2_get_temp and sf2_get_temp() or hg.MapTemps[game.GetMap()] or 20
-
-	if currentPulse > 80 then
-		local pulseMultiplier = math.min((currentPulse - 70) / 100, 1.2)
-		pulseHeat = timeValue / 50 * pulseMultiplier * 0.2
-	end -- unused
-
-	local warming = org.stamina.sub > 0 and 0.5 or 0
-	local ownerpos = owner:GetPos()
-	for i, ent in ipairs(ents.FindInSphere(ownerpos, 300)) do
-		local warmingent = warmingEnts[ent:GetClass()]
-		if warmingent and !ent:GetNoDraw() then
-			--org.temperature = org.temperature + timeValue * (warmingEnts[ent:GetClass()] / 50 * (1 - ent:GetPos():Distance(owner:GetPos()) / 200))
-			warming = warming + (isfunction(warmingent) and warmingent(ent) or warmingent)
-		end
-	end
-
-	for i, tbl in ipairs(hg.gasolinePath) do
-		--tbl[2] -> true = burned, number = still burning, false = unignited
-		if tbl[2] and isnumber(tbl[2]) and (ownerpos - tbl[1]):LengthSqr() < 200 * 200 then
-			warming = warming + 0.5
-		end
-	end
-
-	local changeRate = timeValue / 30 -- 1 degree every 1 minute
-
-	local temp = (IsVisibleSkyBox and temp or 20) + warming * 5
-	
-	local isFreezing = temp < 0
-	local isHeating = temp > 30
-
-	local MaxWarmMul = 1
-	local warmLoseMul = 1
-
-	if temp < -20 then
-		changeRate = changeRate * math.abs(temp) * 0.1
-	end
-	local result1,result2,result3 = hook.Run("ZC_BodyTemperature", owner, org, timeValue, changeRate, MaxWarmMul, warmLoseMul)
-	if result1 and result2 and result3 then
-		changeRate = result1
-		MaxWarmMul = result2
-		warmLoseMul = result3
-	end
-
-	if temp > 25 then
-		changeRate = changeRate * math.Clamp(((org.heatbuff - 30) / 60), 1, 2)
-	end
-
-	org.tempchanging = changeRate
-
-	if org.heatbuff > 0 then
-		temp = math.max(20, temp)
-	end
-
-	if org.heatbuff < 30 and org.temperature < 30 then -- bro is NOT warming up
-		temp = math.min(-20, temp)
-	end
-
-	org.temperature = math.Approach(org.temperature, hg.TranslateToBodyTemp(temp, org), org.tempchanging)
-
-	-- При холоде
-	if owner:Alive() and not org.otrub and org.temperature < 36 then
-		org.FreezeSndCD = org.FreezeSndCD or CurTime() + math.random(5, 15)
-		
-		if org.FreezeSndCD < CurTime() then
-			org.FreezeSndCD = CurTime() + math.random(10, 35)
-
-			ent:EmitSound("zcitysnd/"..(ThatPlyIsFemale(ent) and "fe" or "").."male/freezing_"..math.random(1,8)..".mp3",65)
-		end
-	end
-	
-	org.FreezeDMGCd = org.FreezeDMGCd or CurTime()
-	if org.temperature < 35 and org.FreezeDMGCd < CurTime() then
-		org.painadd = org.painadd + math.Rand(0, 1) * ((35 - org.temperature) / 35 * 4 + 1)
-		org.FreezeDMGCd = CurTime() + 0.5
-	end
-
-	-- При жаре
-	if owner:Alive() and org.temperature > 40 then
-		org.VomitCD = org.VomitCD or CurTime() + math.random(35, 75)
-		
-		if org.VomitCD < CurTime() then
-			org.VomitCD = CurTime() + math.random(35, 75)
-			owner:Notify(hg.get_phraselist(owner, "heatvomit"), 1, "phrase", 1, nil, Color(255, 85, 85, 255))
-			
-			timer.Simple(3, function()
-				hg.organism.Vomit(org.owner)
-			end)
-		end
-	end
-
-	org.HeatDMGCd = org.HeatDMGCd or CurTime()
-	if org.temperature > 38 and org.HeatDMGCd < CurTime() and not org.otrub then
-		org.painadd = org.painadd + math.Rand(0.5, 1) * ((org.temperature - 38) / 38 * 6 + 1)
-		org.HeatDMGCd = CurTime() + 0.5
-	end
-
-	org.heatbuff = math.Approach(org.heatbuff, isFreezing and -30 or 30 * MaxWarmMul, (timeValue * 1) * warmLoseMul)
-
-	org.heatbuff = math.Approach(org.heatbuff, 120 * MaxWarmMul, timeValue * math.Clamp(warming * 1, 0, 4))
-
-	//PrintTable(ents.FindInSphere(org.owner:GetPos(), 128))
-	--мб сделать тепло от env_sprite?
-	--hz...
-	--дороговато
-end)
 
 hook.Add("SetupMove","hg_FallSound",function(ply)
 	--if not ply then return end
@@ -1621,17 +1217,6 @@ hook.Add("OnEntityCreated", "FunnySimfphys", function(ent)
 			SafeRemoveEntity(ent)
 			local ent2 = simfphys.SpawnVehicleSimple( "sim_fphys_jeep", pos, ang)
 			hg.CreateJeepSeats(ent2)
-			-- if CurrentRound and CurrentRound().name == "coop" then
-				-- simfphys.SpawnVehicleSimple( "sim_fphys_jeep", pos, ang)
-			-- else
-			-- 	local glide = ents.Create("gtav_blazer")
-			-- 	glide:SetPos(pos)
-			-- 	ang:RotateAroundAxis(ang:Up(), 90)
-			-- 	glide:SetAngles(ang)
-			-- 	glide:Spawn()
-			-- end
-
-			-- SafeRemoveEntity(ent)
 		end)
 	end
 end)

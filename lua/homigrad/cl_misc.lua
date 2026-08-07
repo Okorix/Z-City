@@ -20,7 +20,6 @@ RunConsoleCommand("async_simulate_delay", "0")
 RunConsoleCommand("mat_motion_blur_enabled", "0")
 RunConsoleCommand("r_fastzreject", "1")
 
-RunConsoleCommand("filesystem_max_stdio_read", "16")
 RunConsoleCommand("net_splitpacket_maxrate", "1048576")
 RunConsoleCommand("net_udp_rcvbuf", "131072")
 
