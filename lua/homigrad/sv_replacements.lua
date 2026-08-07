@@ -389,7 +389,7 @@ local function setupCanister(ent)
 end
 
 local function replaceCanisters()
-    for model, _ in pairs(propaneCanisterModels) do
+    for model, _ in pairs(canisterModels) do
         for _, ent in pairs(ents.FindByModel(model)) do
             timer.Simple(1, function()
 				setupCanister(ent)
