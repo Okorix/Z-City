@@ -352,7 +352,7 @@ local function setupCanister(ent)
     if not IsValid(ent) then return end
 
     local model = ent:GetModel()
-    if not propaneCanisterModels[model] then return end
+    if not canisterModels[model] then return end
     if ent:GetClass() == "physics_cannister" then return end
 
     local pos = ent:GetPos()
