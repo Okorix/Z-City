@@ -341,10 +341,11 @@ end
 
 hook.Add("MapReady", "replaceMansionItems", replaceMansionItems)
 
-local propaneCanisterModels = {
+local canisterModels = {
 	["models/props_c17/canister01a.mdl"] = true,
     ["models/props_c17/canister02a.mdl"] = true,
-    ["models/props_c17/canister_propane01a.mdl"] = true
+    ["models/props_c17/canister_propane01a.mdl"] = true,
+	["models/props_junk/PropaneCanister001a.mdl"] = true
 }
 
 local function setupCanister(ent)
@@ -378,7 +379,7 @@ local function setupCanister(ent)
 			local mass = math.floor(physObj:GetMass())
 			local thrust = math.floor(mass * 23)
 			local fuel = math.floor(mass * 0.5)
-			local health = math.floor(mass * 2.5)
+			local health = math.floor(mass * 3)
 
 			canister:SetKeyValue("health", tostring(health))
 			canister:SetKeyValue("thrust", tostring(thrust))
