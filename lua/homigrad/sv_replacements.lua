@@ -358,30 +358,33 @@ local function setupCanister(ent)
     local ang = ent:GetAngles()
     SafeRemoveEntityDelayed(ent, 0.1)
 
-    local canister = ents.Create("physics_cannister")
-    if not IsValid(canister) then return end
+	timer.Simple(0.1, function()
+	    local canister = ents.Create("physics_cannister")
+		if not IsValid(canister) then return end
 
+		canister:SetModel(model)
+		canister:SetPos(pos)
+		canister:SetAngles(ang)
+		canister:SetKeyValue("gassound", "ambient/gas/cannister_loop.wav")
+		canister:SetKeyValue("renderamt", "255")
+		canister:SetKeyValue("rendercolor", "255 255 255")
 
-    canister:SetModel(model)
-    canister:SetPos(pos)
-    canister:SetAngles(ang)
-    canister:SetKeyValue("gassound", "ambient/gas/cannister_loop.wav")
-	canister:SetKeyValue("renderamt", "255")
-	canister:SetKeyValue("rendercolor", "255 255 255")
+		canister:Spawn()
 
-    canister:Spawn()
+		local physObj = canister:GetPhysicsObject()
+		if IsValid(physObj) then
+			physObj:Wake()
 
-    local physObj = canister:GetPhysicsObject()
-    if IsValid(physObj) then
-        local mass = math.floor(physObj:GetMass())
-        local thrust = math.floor(mass * 23)
-        local fuel = math.floor(mass * 0.5)
-        local health = math.floor(mass * 2.5)
+			local mass = math.floor(physObj:GetMass())
+			local thrust = math.floor(mass * 23)
+			local fuel = math.floor(mass * 0.5)
+			local health = math.floor(mass * 2.5)
 
-        canister:SetKeyValue("health", tostring(health))
-        canister:SetKeyValue("thrust", tostring(thrust))
-        canister:SetKeyValue("fuel", tostring(fuel))
-    end
+			canister:SetKeyValue("health", tostring(health))
+			canister:SetKeyValue("thrust", tostring(thrust))
+			canister:SetKeyValue("fuel", tostring(fuel))
+		end
+	end)
 end
 
 local function replaceCanisters()
