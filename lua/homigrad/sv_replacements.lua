@@ -357,7 +357,6 @@ local function setupCanister(ent)
     local pos = ent:GetPos()
     local ang = ent:GetAngles()
     SafeRemoveEntityDelayed(ent, 0.1)
-	print(ent)
 
     local canister = ents.Create("physics_cannister")
     if not IsValid(canister) then return end
