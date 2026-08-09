@@ -400,9 +400,9 @@ end
 
 hook.Add("MapReady", "replaceCanisters", replaceCanisters)
 hook.Add("OnEntityCreated", "replaceCanisters", function(ent)
-	local conTable = constraint.GetTable(ent)
-	if conTable and #conTable > 0 then return end
 	timer.Simple(0, function()
+		local conTable = constraint.GetTable(ent)
+		if conTable and #conTable > 0 then return end
 		setupCanister(ent)
 	end)
 end)
