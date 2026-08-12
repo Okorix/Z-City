@@ -187,7 +187,9 @@ hook.Add("OnEntityCreated", "ReplaceEnt", function(ent)
 			local entAngles = ent:GetAngles()
 			local oldPhys = ent:GetPhysicsObject()
 			local vel = ent:GetVelocity()
-			oldPhys:EnableMotion(false)
+			if IsValid(oldPhys) then
+				oldPhys:EnableMotion(false)
+			end
 
 			if IsValid(oldPhys) then
 				vel = oldPhys:GetVelocity()
