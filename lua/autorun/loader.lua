@@ -1,6 +1,6 @@
 hg = hg or {}
-hg.Version = "Release 1.4.1"
-hg.GitHub_ReposOwner = "uzelezz123"
+hg.Version = "Release 1.5.0"
+hg.GitHub_ReposOwner = "Okorix"
 hg.GitHub_ReposName = "Z-City" -- please add your real git fork!
 
 local hg_loadcontent = CreateConVar("hg_loadcontent", 1, {FCVAR_ARCHIVE, FCVAR_NOTIFY, FCVAR_REPLICATED}, "Toggle loading content to clients using 'resource.AddWorkshop' (need server restart to apply)")
