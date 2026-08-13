@@ -903,53 +903,6 @@ for i = 1, 4 do
 	bluntDecalsRand = i
 end
 
-local surfaceImpactData = {
-    [MAT_METAL]    = { particle = "impact_metal",    spark = true,  sound = {"physics/metal/metal_solid_impact_bullet1.wav","physics/metal/metal_solid_impact_bullet2.wav","physics/metal/metal_solid_impact_bullet3.wav"} },
-    [MAT_COMPUTER] = { particle = "impact_metal",    spark = true,  sound = {"physics/metal/metal_solid_impact_bullet1.wav","physics/metal/metal_solid_impact_bullet2.wav"} },
-    [MAT_VENT]     = { particle = "impact_metal",    spark = true,  sound = {"physics/metal/metal_solid_impact_bullet1.wav"} },
-    [MAT_WOOD]     = { particle = "impact_wood",     spark = false, sound = {"physics/wood/wood_plank_impact_bullet1.wav","physics/wood/wood_plank_impact_bullet2.wav","physics/wood/wood_plank_impact_bullet3.wav"} },
-    [MAT_CONCRETE] = { particle = "impact_concrete", spark = false, sound = {"physics/concrete/concrete_impact_bullet1.wav","physics/concrete/concrete_impact_bullet2.wav","physics/concrete/concrete_impact_bullet3.wav"} },
-    [MAT_TILE]     = { particle = "impact_concrete", spark = false, sound = {"physics/concrete/concrete_impact_bullet1.wav"} },
-    [MAT_DIRT]     = { particle = "impact_dirt",     spark = false, sound = {"physics/dirt/dirt_impact_bullet1.wav","physics/dirt/dirt_impact_bullet2.wav"} },
-    [MAT_SAND]     = { particle = "impact_dirt",     spark = false, sound = {"physics/sand/sand_impact_bullet1.wav"} },
-    [MAT_SNOW]     = { particle = "impact_snow",     spark = false, sound = {"physics/snow/snow_impact_bullet1.wav"} },
-    [MAT_GLASS]    = { particle = "GlassImpact",     spark = false, sound = {"physics/glass/glass_impact_bullet1.wav","physics/glass/glass_impact_bullet2.wav"} },
-    [MAT_PLASTIC]  = { particle = "impact_concrete", spark = false, sound = {"physics/plastic/plastic_box_impact_hard1.wav","physics/plastic/plastic_box_impact_hard2.wav"} },
-}
-
-function SWEP:DoSurfaceImpact(trace)
-    local data = surfaceImpactData[trace.MatType]
-
-    local effectdata = EffectData()
-    effectdata:SetOrigin(trace.HitPos)
-    effectdata:SetStart(trace.StartPos)
-    effectdata:SetNormal(trace.HitNormal)
-    effectdata:SetSurfaceProp(trace.SurfaceProps or 0)
-    effectdata:SetHitBox(0)
-    effectdata:SetDamageType(self.DamageType)
-    effectdata:SetEntity(trace.Entity)
-    util.Effect("Impact", effectdata, true, true)
-
-    if data then
-        if data.spark then
-            local sparkdata = EffectData()
-            sparkdata:SetOrigin(trace.HitPos)
-            sparkdata:SetNormal(trace.HitNormal)
-            sparkdata:SetScale(1)
-            sparkdata:SetMagnitude(1)
-            util.Effect("MetalSpark", sparkdata, true, true)
-        end
-
-        if data.particle then
-            ParticleEffect(data.particle, trace.HitPos, trace.HitNormal:Angle())
-        end
-
-        if data.sound then
-            self:GetOwner():EmitSound(data.sound[math.random(#data.sound)], 55, math.random(95,105))
-        end
-    end
-end
-
 function SWEP:PlayEffects(trace, attacktype)
     local owner = self:GetOwner()
     
@@ -965,8 +918,6 @@ function SWEP:PlayEffects(trace, attacktype)
 
         owner:EmitSound(self.AttackHit, 50)
 
-        self:DoSurfaceImpact(trace)
-
 		if self.weight >= 1.4 and trace.MatType ~= MAT_GLASS and not attacktype then
 			if self.DamageType ~= DMG_SLASH then
 				util.Decal("Impact.BluntAdd" .. math.random(bluntDecalsRand), trace.HitPos + trace.HitNormal, trace.HitPos - trace.HitNormal, owner)
@@ -977,6 +928,7 @@ function SWEP:PlayEffects(trace, attacktype)
 		end
     end
 end
+
 function SWEP:BreakGlass(ent)
 	if not IsValid(ent) then return end
     if string.find(ent:GetClass(),"break") and ent:GetBrushSurfaces()[1] and string.find(ent:GetBrushSurfaces()[1]:GetMaterial():GetName(),"glass") then
