@@ -15,6 +15,8 @@ function SWEP:Holster(wep)--
 
 	if self.holster ~= nil then return false end]]
 
+	self:SetNWBool("IsResting", false)
+
 	if self.deploy then
 		self:SetDeploy(0)
 		self.deploy = nil
