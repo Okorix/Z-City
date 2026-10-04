@@ -1338,6 +1338,8 @@ function SWEP:CustomThink()
                 else
                     dmg = dmg / 1.5
                 end
+
+                hg.AddForceRag(ent, trace.PhysicsBone or 0, trace.Normal * math.min(dmg, 25) * 400, 0.5)
                                 
                 local dmginfo = DamageInfo()
 
@@ -1352,8 +1354,6 @@ function SWEP:CustomThink()
                 ent:TakeDamageInfo(dmginfo)
                 self.attackedOnce = true
                 self.slash = nil
-                
-                hg.AddForceRag(ent, trace.PhysicsBone or 0, trace.Normal * math.min(dmg, 25) * 400, 0.5)
 
                 self:PunchPlayer(ent, false, trace.Normal, dmg)
 
@@ -1436,6 +1436,8 @@ function SWEP:CustomThink()
                     dmg = dmg / math.max(1,self.AttackRads2 * self.Attack2TimeLength)
                 end
 
+                hg.AddForceRag(ent, trace.PhysicsBone or 0, trace.Normal * math.min(dmg, 25) * 400, 0.5)
+
                 local dmginfo = DamageInfo()
 
                 dmginfo:SetAttacker(owner)
@@ -1452,8 +1454,6 @@ function SWEP:CustomThink()
                 self.slash = nil
 
                 local phys = ent:GetPhysicsObjectNum(trace.PhysicsBone or 0)
-
-                hg.AddForceRag(ent, trace.PhysicsBone or 0, trace.Normal * math.min(dmg, 25) * 400, 0.5)
 
                 self:PunchPlayer(ent, true, trace.Normal, dmg)
 
@@ -1909,17 +1909,8 @@ function SWEP:NPCThink()
 					trEnt:PrecacheGibs()
 
 					dmg = dmg * mul
-					local dmginfo = DamageInfo()
-					dmginfo:SetAttacker(npc)
-					dmginfo:SetInflictor(self)
-					dmginfo:SetDamage(dmg)
-					dmginfo:SetDamageForce(trace.Normal * dmg * 1)
-					dmginfo:SetDamageType(self.DamageType)
-					dmginfo:SetDamagePosition(trace.HitPos)
-					trEnt:TakeDamageInfo(dmginfo)
-					npc:EmitSound(self.AttackHitFlesh, 60)
 
-					if trEnt:IsPlayer() then
+                    if trEnt:IsPlayer() then
 						hg.AddForceRag(trEnt, trace.PhysicsBone or 0, trace.Normal * math.min(dmg, 25) * 400, 0.5)
 
 						self:PunchPlayer(trEnt, false, trace.Normal, dmg)
@@ -1930,6 +1921,17 @@ function SWEP:NPCThink()
 							phys:ApplyForceOffset(trace.Normal * math.min(dmg, 25) * 400, trace.HitPos)
 						end
 					end
+
+					local dmginfo = DamageInfo()
+					dmginfo:SetAttacker(npc)
+					dmginfo:SetInflictor(self)
+					dmginfo:SetDamage(dmg)
+					dmginfo:SetDamageForce(trace.Normal * dmg * 1)
+					dmginfo:SetDamageType(self.DamageType)
+					dmginfo:SetDamagePosition(trace.HitPos)
+					trEnt:TakeDamageInfo(dmginfo)
+					npc:EmitSound(self.AttackHitFlesh, 60)
+
 				end
 				if timer.Exists(timerId) then timer.Remove(timerId) end
 			end)

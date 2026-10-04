@@ -4,7 +4,6 @@ local entMeta = FindMetaTable("Entity")
 AddCSLuaFile()
 
 ENT.Type = "anim"
-ENT.Base = "base_gmodentity"
 ENT.PrintName = "Equipment base"
 ENT.Category = "ZCity Equipment"
 ENT.Spawnable = false
@@ -90,8 +89,8 @@ end
         for _,v in ipairs(Equipment) do
             local Equip = Entity(v)
             if !IsValid(Equip) then continue end
-            --PrintTable(v.SlotOccupation)
-            --PrintTable(self.SlotOccupation)
+            -- PrintTable(Equip.SlotOccupation)
+            -- PrintTable(self.SlotOccupation)
             for slot, _ in pairs(Equip.SlotOccupation) do
                 if isnumber(slot) and self.SlotOccupation[slot] then return false, slot end
             end
@@ -107,7 +106,7 @@ end
 --\\ Use function
     function ENT:Use(entUser)
         local CanWear, Slot = self:CanWear(entUser) 
-        if !CanWear then entUser:GetEquipmentBySlot(Slot):Unwear(entUser) end
+        if !CanWear then entUser:GetEquipmentBySlot(Slot):Unwear(entUser) return end
 
         self:Wear(entUser)
     end
@@ -263,10 +262,9 @@ end
     hook.Add("CoolPostDrawAppearance", "zc_equipmentDraw",function(ent, ply)
         local Equipment = ply:GetNetVar("zc_equipment", {})
         if #Equipment < 1 then return end
-
         for i = 1, #Equipment do
             local Equip = Entity(Equipment[i])
-            if !IsValid(Equip) then continue end
+            if !IsValid(Equip) or !Equip.RenderOnBody then continue end
             Equip:RenderOnBody(ent)
         end
     end)
@@ -276,7 +274,7 @@ end
     hook.Add("ItemsTransfered", "TransferEquipment", function(ply, ragdoll)
         local Equipment = ply:GetNetVar("zc_equipment", {})
         local EquipmentBySlot = ply:GetNetVar("zc_equipment_slot", {})
-        if #Equipment < 1 then return end
+        if Equipment and #Equipment < 1 then return end
 
         for i = 1, #Equipment do
             local Equip = Entity(Equipment[i])
@@ -291,40 +289,53 @@ end
     end)
 --//
 
+--\\ Die items
+    hook.Add("ItemsRemoved", "TransferEquipment", function(ply, ragdoll)
+        local Equipment = ply:GetNetVar("zc_equipment", {})
+        local EquipmentBySlot = ply:GetNetVar("zc_equipment_slot", {})
+        if Equipment and #Equipment < 1 then return end
+
+        for i = 1, #Equipment do
+            local Equip = Entity(Equipment[i])
+            if !IsValid(Equip) then continue end
+            Equip:Remove()
+        end
+    end)
+--//
+
 --\\
     function entMeta:GetEquipmentBySlot(slot)
         local EquipmentBySlot = self:GetNetVar("zc_equipment_slot",{})
 
-        return Entity(EquipmentBySlot[slot])
+        return EquipmentBySlot[slot] and Entity(EquipmentBySlot[slot]) or nil
+    end
+
+    function entMeta:GetEquipments(slot)
+
+        return self:GetNetVar("zc_equipment", {})
     end
 --//
 
 --\\ Equipment drop command
     if SERVER then
-        concommand.Add("hg_drop_equipment", function(ply, cmd, args)
+        concommand.Add("hg_drop_new_equipment", function(ply, cmd, args)
             if !IsValid(ply) then return end
             if !ply:Alive() or !ply.organism or ply.organism.otrub then return end
             if !args[1] or !tonumber(args[1]) then return end
             local Equipment = ply:GetNetVar("zc_equipment", {})
+            if not Equipment[tonumber(args[1])] then return end
+            local Equip = Entity(Equipment[tonumber(args[1])])
+            if !IsValid(Equip) then return end
 
-            for i = 1, #Equipment do
-                local Equip = Entity(Equipment[i])
-
-                for slot, _ in pairs(Equip.SlotOccupation) do
-                    if isnumber(slot) and tonumber(args[1]) == slot then
-                        Equip:Unwear(ply)
-                        return
-                    end
-                end
-            end
+            Equip:Unwear(ply)
         end)
     end
-
-    hook.Add("radialOptions", "zc_equipment", function()
+    
+    hook.Add("radialOptions", "1_zc_equipment", function()
         local ply = LocalPlayer()
         local organism = ply.organism or {}
 
-        if ply:Alive() and !organism.otrub and hg.GetCurrentCharacter(ply) == ply then
+        if ply:Alive() and !organism.otrub then
             local Equipment = ply:GetNetVar("zc_equipment", {})
             if !Equipment or #Equipment < 1 then return end
             local tbl = {function()
@@ -333,20 +344,19 @@ end
                     local Equip = Entity(Equipment[i])
 
                     for slot, _ in pairs(Equip.SlotOccupation) do
+                        --Equip.IconInv = isstring(Equip.IconOverride) and Material(Equip.IconOverride) or Equip.IconInv or nil -- soon
                         commands[i] = {
                             [1] = function()
-                                local id = next(Equip.SlotOccupation)
-                                --print(slot)
-                                RunConsoleCommand("hg_drop_equipment", slot)
+                                RunConsoleCommand("hg_drop_new_equipment", i)
                                 return 0
                             end,
-                            [2] = "Drop:" .. " " .. Equip.PrintName
+                            [2] = "Drop:" .. " " .. Equip.PrintName,
                         }
                     end
                 end
                 hg.CreateRadialMenu(commands)
                 return -1
-            end, "Drop Equipment"}
+            end, "Drop\nEquipment"}
             hg.radialOptions[#hg.radialOptions + 1] = tbl
         end
     end)
