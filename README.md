@@ -1,22 +1,37 @@
 <div align="center">
 
 # Z-City
-Z-City is a GMod addon which modifies character damage and controls. Z-City also comes with its own weapon base and a gamemode
 
-https://github.com/uzelezz123/8bit_zcity - 8bit module (for voice effects)
-https://github.com/Okorix/gmsv_entityio - entityio module (for fully working spawn replacements)
+*Z-City is a GMod addon which modifies character damage and controls. It also features its own custom weapon base and a dedicated gamemode.*
 
-Optional Discord RPC module for clients:
-1. https://github.com/YuRaNnNzZZ/gmcl_steamrichpresencer/releases/tag/2023.07.20
-2. https://github.com/fluffy-servers/gmod-discord-rpc/releases/tag/1.2.1
+</div>
 
-The current version in the repository is 1.5.0
+---
 
-## The numbers in the version number indicate:
-A.Bcc -> 1.000
-- A -> Global updates
-- B -> New mechanics, gameplay changes
-- c -> Fixes and other small things
+## 🔗 Resources & Links
+
+- **[⚙️ 8bit module](https://github.com/uzelezz123/8bit_zcity)**
+- **[⚙️ entityio module](https://github.com/Okorix/gmsv_entityio)**
+
+### 🧩 Optional RPC Modules (for clients):
+- **[⚙️ Steam Rich Presence](https://github.com/YuRaNnNzZZ/gmcl_steamrichpresencer/releases/tag/2023.07.20)**
+- **[⚙️ Discord Rich Presence](https://github.com/fluffy-servers/gmod-discord-rpc/releases/tag/1.2.1)**
+
+---
+
+## 📦 Versioning
+
+**Current version:** `1.5.0`
+
+Our versioning system follows the **`A.B.cc`** format:
+* **`A`** - Global updates
+* **`B`** - New mechanics and gameplay changes
+* **`cc`** - Fixes and other minor improvements
+
+## 📜 License
+
+This project is open-source and shared under the **GNU AGPL-3** license. Head over to the [License](LICENSE) file for more information.
 
 # Collection link
+
 https://steamcommunity.com/sharedfiles/filedetails/?id=3568858012
